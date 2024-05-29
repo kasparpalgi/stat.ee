@@ -1,0 +1,214 @@
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>model_runner.ts</title>
+      <link href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css" type="text/css" rel="stylesheet">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/mode/javascript/javascript.min.js" type="text/javascript" charset="utf-8"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.58.2/codemirror.min.css" type="text/css" rel="stylesheet">
+<script src="../../../assets/source-file.js" type="text/javascript" charset="utf-8"></script>
+<link href="../../../assets/source-file.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+    <div style="margin-top:3em" class="ui container"><h1 class="ui header"><a href="../../../index.html">TypeScript coverage report</a></h1><table style="margin-top:2em" class="ui celled table"><thead class=""><tr class=""><th class="">Filename</th><th class="">Percent</th><th class="">Threshold</th><th class="">Total</th><th class="">Covered</th><th class="">Uncovered</th></tr></thead><tbody class=""><tr class="positive"><td class="">src/model/model_runner.ts</td><td class="">98.99%</td><td class="">80%</td><td class="">398</td><td class="">394</td><td class="">4</td></tr></tbody></table><textarea id="editor" readonly="" style="margin-top:3em">import CompanyData from &quot;../company/company_entity&quot;;
+import * as tf from &#x27;@tensorflow/tfjs&#x27;;
+import { Model } from &quot;./model&quot;;
+import ClusterRepository from &quot;../cluster/cluster_repository&quot;;
+import ClusterEntity from &quot;./../cluster/cluster_entity&quot;;
+import {storageUrl} from &#x27;../utils/config&#x27;;
+import PredictionEntity from &quot;../prediction/response_entity&quot;;
+import { logger } from &quot;../utils/logger&quot;;
+import CompanyEntity from &quot;../company/company_entity&quot;;
+import dummyCompanyResponse from &#x27;./../company/company_static_data&#x27;;
+import  { Request, Response } from &#x27;express&#x27;;
+import { sendError } from &quot;../utils/errors&quot;;
+import { Prediction } from &quot;./../prediction/prediction&quot;;
+
+export default class ModelRunner {
+
+    private prepareData(company: CompanyData): Array&lt;number&gt; {
+        const clusters = new ClusterRepository();
+        const clusterName = company.Klaster;
+
+        // Retrieves the cluster values for the company.
+        const companyCluster = ClusterEntity.fromCompany(company);
+
+        // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
+        const meaCluster = clusters.findMeaByCluster(clusterName);
+        const substractedData = meaCluster.substract(companyCluster);
+
+        // Divides each field by the corresponding `sds` value based on the cluster.
+        const sdsCluster = clusters.findSdsByCluster(clusterName);
+        const dividedData = sdsCluster.divide(substractedData);
+        
+        return Object.values(dividedData);
+    }
+
+    private async tensor(values: Array&lt;number&gt;): Promise&lt;tf.Tensor2D&gt; {
+        return tf.tensor2d(values, [1, 64]);
+    }
+
+    // Note: LoadLayersModel is only loading the model from a url, not from a local file
+    private async loadModel(cluster: string, model: Model): Promise&lt;tf.LayersModel&gt; {
+        const storage = storageUrl();
+        return tf.loadLayersModel(storage + model + &#x27;_&#x27; + cluster + &#x27;/model.json&#x27;);
+    }
+
+    public async handleRequest(req: Request, res: Response) : Promise&lt;any&gt; {
+        const regNr = req.query.reg_nr;
+
+        try {
+            if (!regNr || regNr.length === 0) {
+                throw new Error(&#x27;Company not found&#x27;);
+            }
+            let prediction = await this.response(`${regNr}`);
+            const response = prediction.serialize(); 
+            res.send(response);
+        } catch (error) {
+            switch (error.message) {
+                case &#x27;Company not found&#x27;:
+                    return sendError(res, &#x27;company-not-found&#x27;);
+                case &#x27;Cluster not found&#x27;:
+                    return sendError(res, &#x27;cluster-not-found&#x27;);
+                default:
+                    return sendError(res, &#x27;bad-request&#x27;);
+            }
+        }
+        
+    }
+
+   
+
+    public async response(registCo: string ) : Promise&lt;PredictionEntity&gt;  {
+        let dummyData = dummyCompanyResponse;
+        let dummyCompany = CompanyEntity.deserialize(dummyData);
+
+        // If no response is found, throw an error
+        if (dummyCompany === undefined) {
+            throw new Error(&#x27;Company not found&#x27;);
+        }
+        // If the cluster is &#x27;muu&#x27;, throw an error
+         if (dummyCompany.Klaster === &#x27;muu&#x27;) {
+            throw new Error(&#x27;Cluster not found&#x27;);
+        }
+        logger.debug(&#x27;Company with cluster: &#x27; + dummyCompany.Klaster);
+
+        const response = new PredictionEntity();
+
+        response.registCo = registCo;
+        const liquidity = await this.predict(dummyCompany, Model.Liquidity);
+        response.model1y1 = liquidity.x;
+        response.model1y2 = liquidity.y;
+        response.model1y3 = liquidity.z;
+        const profitability = await this.predict(dummyCompany, Model.Profitability);
+        response.model2y1 = profitability.x;
+        response.model2y2 = profitability.y;
+        response.model2y3 = profitability.z;
+        const efficiency = await this.predict(dummyCompany, Model.Efficiency);
+        response.model3y1 = efficiency.x;
+        response.model3y2 = efficiency.y;
+        response.model3y3 = efficiency.z;
+        const structure = await this.predict(dummyCompany, Model.Structure);
+        response.model4y1 = structure.x;
+        response.model4y2 = structure.y;
+        response.model4y3 = structure.z;
+        const other = &#x27;&#x27;;
+        response.model5y1 = 0;
+        response.model5y2 = 0;
+        response.model5y3 = 0;
+        // 
+        response.sektorNo = 0;
+
+        try {
+            const size = this.parseString(dummyCompany.Ettevotte_suurusklass);
+            response.size_min = size.min;
+            response.size_max = size.max;
+        } catch (error) {
+            response.size_min = 0;
+            response.size_max = 0;
+        }
+
+        response.county = dummyCompany.Maakond;
+        response.kov = dummyCompany.KOV;
+
+        response.LVKK = dummyCompany.LVKK;
+        response.MVK = dummyCompany.MVK;
+        response.RK = dummyCompany.RK;
+        response.LLLK = dummyCompany.LLLK;
+        response.LLVK = dummyCompany.LLVK;
+        response.LLOK = dummyCompany.LLOK;
+        response.VaKK = dummyCompany.VaKK;
+        response.LVKaK = dummyCompany.LVKaK;
+        response.VKK = dummyCompany.VKK;
+        response.VK = dummyCompany.VK;
+        response.KOS = dummyCompany.KOS;
+        response.LKKKK = dummyCompany.LKKKK;https://i.imgur.com/04Te6hu_d.webp?maxwidth=760&amp;fidelity=grand
+        response.PKKKK = dummyCompany.PKKKK;
+        response.AKM = dummyCompany.AKM;
+        response.PKM = dummyCompany.PKM;
+        response.ROA = dummyCompany.ROA;
+        response.ROE = dummyCompany.ROE;
+
+        // Eff
+        response.EffSect = dummyCompany.sektor_efektiivsus_protsentiil;
+        response.EffSize = 0;
+        response.EffCount = 0;
+        // Liq
+        response.LiqSect = 0;
+        response.LiqSize = 0;
+        response.LiqCount = 0;
+        // Lev
+        response.LevCount = 0;
+        response.LevSize = 0;
+        response.LevSect = 0;
+        // Ret
+        response.RetCount = 0;
+        response.RetSize = 0;
+        response.RetSect = 0;
+        // Emp
+        response.EmpCount = 0;
+        response.EmpSize = 0;
+        response.EmpSect = 0;
+        
+        return response;
+    }
+
+    private parseString(str: string): { min: number; max: number } {
+        const parts = str.split(&quot;_&quot;);
+        // Check if there are at least 3 parts (minimum for 1, value, and 9)
+        if (parts.length &lt; 3) {
+            throw new Error(&quot;Invalid format: String must have at least three parts separated by underscores&quot;);
+        }
+        const min = parseInt(parts[1]);
+        const max = parseInt(parts[parts.length - 1]); // Access last element
+
+        if (isNaN(min) || isNaN(max)) {
+            throw new Error(&quot;Invalid format: Both values must be numbers&quot;);
+        }
+        return { min, max };
+    }
+
+
+    public async predict(companyData: CompanyData, model: Model): Promise&lt;Prediction&gt; {
+        const data = this.prepareData(companyData);
+        const tensor = await this.tensor(data);
+        const loadedModel = await this.loadModel(companyData.Klaster, model);
+
+        // This has to be awaited
+        const prediction = await (loadedModel.predict(tensor) as tf.Tensor);
+        const dataSync =  prediction.dataSync();
+
+        return {
+            x: dataSync[0],
+            y: dataSync[1],
+            z: dataSync[2]
+        }
+    }
+
+    
+}</textarea><pre id="annotations" style="display:none">[{&quot;file&quot;:&quot;src/model/model_runner.ts&quot;,&quot;line&quot;:55,&quot;character&quot;:20,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;src/model/model_runner.ts&quot;,&quot;line&quot;:55,&quot;character&quot;:26,&quot;text&quot;:&quot;message&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;src/model/model_runner.ts&quot;,&quot;line&quot;:54,&quot;character&quot;:17,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1},{&quot;file&quot;:&quot;src/model/model_runner.ts&quot;,&quot;line&quot;:113,&quot;character&quot;:17,&quot;text&quot;:&quot;error&quot;,&quot;kind&quot;:1}]</pre></div>
+    <p class="footer-text">TypeScript Coverage Report generated by <a href="https://github.com/plantain-00/type-coverage">type-coverage</a> and <a href="https://github.com/alexcanessa/typescript-coverage-report">typescript-coverage-report</a> at Tue, 07 May 2024 13:11:00 GMT</p>
+    </body>
+  </html>
+  

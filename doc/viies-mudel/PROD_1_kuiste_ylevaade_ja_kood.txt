@@ -1,0 +1,449 @@
+kolme kanaliga konvolutsioonilised võrgud, kus eismeses kanalis on 12 kuud kmd, teises tsd, kolmands tör.
+Kolme klassiga klassifitseerimine nagu need aastased mudelid.
+ennustab käibe/tööjõukulude suhte kasvu/langust järgmisel/kestval kvartalil.
+
+              mudel tr_acc val_acc test_loss test_acc test0_loss test0_acc
+1 kuine_PROD_1_k4_1   61.4    62.1     0.862     60.2      0.822      63.5
+2 kuine_PROD_1_k4_2   63.6    64.9     0.780     66.6      0.824      63.6
+3 kuine_PROD_1_k4_3   62.6    64.6     0.811     64.1      0.816      63.6
+4 kuine_PROD_1_k4_4   63.4    63.3     0.827     63.8      0.826      63.3
+
+
+
+
+##################### treenimise kood ####################
+
+# mitme kanaliga konvolutsioon:
+
+# kuine mudel kmd/tsd 13:15 kuu seisu ennustamine eelnevast 12 kuust
+# kasvu või languse klassifitseerimine:
+library(tidyverse)
+library(caret)
+library(tensorflow)
+library(keras)
+library(data.table)
+setwd("/home/rstudio/data")
+dd  <- fread("kuine_15_bigboy2.csv", sep="\t")
+dd <- as.data.frame(dd)
+gc()
+#library(smotefamily)
+
+# d <- read.csv('kmd_tsd_al15_lai.csv', sep=",")
+
+kl <- read.csv('klastrid_UUS.csv', sep = ";")
+#kl <- read.csv('viiene_ja_kuuene_4-5_kmeans.csv', sep = ";")
+dd <- dd %>%
+  mutate(EMTAK08 = as.character(EMTAK08),  # Convert to character
+         EMTAK08 = as.numeric(sub("0$", "1", EMTAK08)))
+
+dd <- dd %>%
+  mutate(klaster = case_when(EMTAK08 %in% kl$EMTAK[which(kl$k4_1==1)] ~ "k4_1",
+                             EMTAK08 %in% kl$EMTAK[which(kl$k4_2==1)] ~ "k4_2",
+                             EMTAK08 %in% kl$EMTAK[which(kl$k4_3==1)] ~ "k4_3",
+                             EMTAK08 %in% kl$EMTAK[which(kl$k4_4==1)] ~ "k4_4",
+                             .default = "muu"))
+
+table(dd$klaster)
+
+sektr2 <- read.csv("SEKTORID_UUS3.csv", sep=";", stringsAsFactors = F)
+
+#df <- left_join(dd, sektr[,2:4], by=c('EMTAK08'='EMTAK'))
+df <- left_join(dd, sektr2, by=c('EMTAK08'='EMTAK'))
+sum(is.na(df$Sektor_nr))
+
+# VISATA VÄLJ AMTÜD JA SAD
+
+df$esi <- substr(df$JYKOOD, 1,1)
+table(df$OIG_GRUPP, df$esi)
+
+df <- df[which(df$OIG_GRUPP=="ETTEV"),]
+
+# uue failiga vb -1 siia panna, kui rownames tulpa ei ole
+vah_tor <- 10:(10+14)-1
+vah_dtor <- 25:(25+14)-1
+vah_kmd <- 40:(40+14)-1
+vah_tsd <- 55:(55+14)-1
+vah_by <- 70:(70+14)-1
+
+#df <- as.data.frame(df)
+rm(dd)
+gc()
+
+df$puudu_tor <- rowSums(is.na(df[,vah_tor[1:12]]))#
+df$puudu_dtor <- rowSums(is.na(df[,vah_dtor[1:12]]))
+df$puudu_kmd <- rowSums(is.na(df[,vah_kmd[1:12]]))#
+df$puudu_tsd <- rowSums(is.na(df[,vah_tsd[1:12]]))#
+df$puudu_by <- rowSums(is.na(df[,vah_by[1:12]]))#
+
+df$puuduvaid_y <- rowSums(is.na(df[,vah_by[13:15]]))#
+
+# need välja, kus labelis oleks negatiivseid kmd v22rtusi
+
+
+dim(df)#15058109 # 12820761       
+df <- df[which(df$puudu_kmd<1),]
+dim(df)# ... # 5654082
+df <- df[which(df$puudu_tsd<1),]
+dim(df)# ... # 3418833
+df <- df[which(df$puuduvaid_y<2),]
+dim(df)# ...# 3176539
+
+df$puudu_by11_12 <- rowSums(is.na(df[,vah_by[11:12]]))
+dim(df)
+df <- df[which(df$puudu_by11_12<1),]
+dim(df)# ... # 3036196
+
+dim(df)# palju siit kadum aläheb törri kaasamisest?
+df <- df[which(df$puudu_tor<1),]
+dim(df)#3034761 # 3034761
+
+vah_kmd[11:15]
+
+df <- df[which(df[,vah_kmd[11]]>=0 &
+                 df[,vah_kmd[12]]>=0 &
+                 df[,vah_kmd[13]]>=0 &
+                 df[,vah_kmd[14]]>=0 &
+                 df[,vah_kmd[15]]>=0),]
+dim(df)#3025422 # 3025422     
+
+
+gc()
+# SIIA UUE LABELI ARVUTUS
+df$m_13_15 <- rowMeans(df[,c("by13","by14","by15")], na.rm=T)
+df$m_11_12 <- rowMeans(df[,c("by11","by12")], na.rm=T)
+
+# df$delta <- df$m_13_15-df$m_11_12
+# 
+# df$delta_b <- df$delta
+
+# suhteline muutus, millest tuleb label
+df$suhtmuut <- (df$m_13_15-df$m_11_12)/df$m_11_12
+
+# LABELI / MÄRGENDI ARVUTAMINE perioodi ja klastri järgi (kasvu protsentiil antud perioodil antud klastris)
+df <- df %>% group_by(kuu12, klaster) %>%
+  mutate(q1 = quantile(suhtmuut,0.2,na.rm=T),
+         q3 = quantile(suhtmuut,0.8,na.rm=T),
+         qm1 = quantile(suhtmuut,0.4,na.rm=T),
+         qm3 = quantile(suhtmuut,0.6,na.rm=T),
+         lbl=ifelse(suhtmuut<q1,0,ifelse(between(suhtmuut, qm1, qm3) , 1, ifelse(suhtmuut>q3 ,2,NA)))) %>% ungroup() %>% as.data.frame()
+
+# df$delta_b[which(df$delta< -100)] <- -100
+# df$delta_b[which(df$delta> 100)] <- 100
+
+# üks variant oleks see delta binnideks teha sama loogika järgi et [...0.25; 0.33-0.66; 0.75...]
+# aga kas klastris?? siis overfitiks veits? 
+# või kogu eesti?
+# df <- df %>% group_by(kuu12) %>%
+#   mutate(q1 = quantile(delta_b,0.25,na.rm=T),
+#          q3 = quantile(delta_b,0.75,na.rm=T),
+#          qm1 = quantile(delta_b,0.33,na.rm=T),
+#          qm3 = quantile(delta_b,0.66,na.rm=T),
+#          lbl=ifelse(delta_b<q1,0,ifelse(between(delta_b, qm1, qm3) , 1, ifelse(delta_b>q3 ,2,NA)))) %>% ungroup() %>% as.data.frame()
+
+par(mfrow=c(2,2))
+barplot(table(df$lbl[which(df$klaster=="k4_1")]), main="k4_1")
+barplot(table(df$lbl[which(df$klaster=="k4_2")]), main="k4_2")
+barplot(table(df$lbl[which(df$klaster=="k4_3")]), main="k4_3")
+barplot(table(df$lbl[which(df$klaster=="k4_4")]), main="k4_4")
+par(mfrow=c(1,1))
+
+df[,vah_tor][df[,vah_tor]>250] <- 250
+df[,vah_tsd][df[,vah_tsd]>450000] <- 450000
+df[,vah_kmd][df[,vah_kmd]> 2500000] <- 2500000
+df[,vah_kmd][df[,vah_kmd]< -2500000] <- -2500000
+
+#df[,3:14][df[,3:14]>1000] <- 1000
+#df <- fread("kmd_by_tsd_masinope.csv", sep = "\t")
+
+ennustajad_kmd <- paste0("kmd_",1:12)
+ennustajad_tsd <- paste0("tsd",1:12)
+ennustajad_tor <- paste0("tor_",1:12)
+ennustajad <- c(ennustajad_kmd,ennustajad_tsd,ennustajad_tor)
+
+# neid otsasid kka väiksemaks, et treeningsetti suuremaks saada
+kk <- c("tor_202302", "tor_202303", "tor_202304", "tor_202305", "tor_202306" ,"tor_202307", "tor_202308", "tor_202309", "tor_202310")
+kk <- c("tor_202305", "tor_202306" ,"tor_202307", "tor_202308", "tor_202309", "tor_202310")
+#k <- c("X202303" ,"X202304", "X202305", "X202306", "X202307", "X202308", "X202309", "X202310", "X202311")
+
+vanad <- c("tor_201612", "tor_201701" ,"tor_201702", "tor_201703", "tor_201704","tor_201705", "tor_201706", "tor_201707" ,"tor_201708")
+vanad <- c("tor_201612", "tor_201701" ,"tor_201702", "tor_201703", "tor_201704","tor_201705")
+#vanad <- c("X201602", "X201603", "X201604","X201605","X201606","X201607", "X201608", "X201609", "X201610", "X201611","X201612","X201701")
+
+klastrid <- c("k4_1", "k4_2" ,"k4_3" ,"k4_4")
+
+df <- as.data.frame(df)
+#sum(df$k1)
+set.seed(6663)
+df <- df[sample(1:nrow(df)),]
+eksperimendinimi <- "norm_klasterxkuu_SUUR_3_"
+
+tulemused <- list()
+plots <- list()
+segmats <- list()
+segmats0 <- list()
+
+setwd("/home/rstudio/out")
+
+options(scipen=999)
+
+i<-0
+for (klaster in klastrid) {
+  i<-i+1
+  dat0 <- df[which(df$klaster==klaster),]
+  
+
+  
+  ###TODO: SIIA kuupõhine normaliseerimine - see võiks aidata üle aja generaliseerida
+  kuu <- unique(dat0$kuu12)
+  kuu <- kuu[-which(kuu %in% c(kk, vanad))]
+  test <- dat0[which(dat0$kuu12 %in% kk),c(ennustajad,"kuu12","lbl")]
+  test0 <- dat0[which(dat0$kuu12 %in% vanad),c(ennustajad,"kuu12","lbl")]
+  train <- dat0[-which(dat0$kuu12 %in% c(kk, vanad)),c(ennustajad,"kuu12","lbl")]
+  train_y <- train$lbl
+  test_y <- test$lbl
+  test_y0 <- test0$lbl
+  
+  train_x <- train[,1:37]
+  test_x <- test[,1:37]
+  test_x0 <- test0[,1:37]
+  # siia samasugune loop umbes nagu aastapõhise normaliseerimisega??
+  list_tr <- list()
+  list_te <- list()
+  list_te0 <- list()
+  tr_y <- c()
+  te_y <- c()
+  te0_y <- c()
+  for (k in kuu){# persse, ei saa ju treeningkuuga normaliseerida sellises ülesehitused
+    assign(paste0("tr",k), train_x[which(train_x$kuu12==k),1:36])
+    # assign(paste0("te",k), test_x[which(test_x$kuu12==k),1:36])
+    # assign(paste0("te0",k), test_x0[which(test_x0$kuu12==k),1:36])
+    tr_y <- c(tr_y, train_y[which(train_x$kuu12==k)])
+    # te_y <- c(te_y, test_y[which(test_x$kuu12==k)])
+    # te0_y <- c(te0_y, test_y0[which(test_x0$kuu12==k)])
+    #iga aasta kohta oma normaliseerimise kiht
+    assign(paste0("lay_tr", k), layer_normalization())
+    # assign(paste0("lay_te", k), layer_normalization())
+    # assign(paste0("lay_te0", k), layer_normalization())
+    # v6tab keksmised ja standardh2lbed vastaavast treningseti osast
+    adapt(get(paste0("lay_tr", k)), as.matrix(get(paste0("tr",k))))
+    # adapt(get(paste0("lay_te", k)), as.matrix(get(paste0("te",k))))
+    # adapt(get(paste0("lay_te0", k)), as.matrix(get(paste0("te0",k))))
+    
+    #assign(get(paste0("tr",a)),get(paste0("lay_", a))(as.matrix(get(paste0("tr",a)))))
+    #stds <- c(stds,get(paste0("lay_", a)))
+    assign(paste0("tr",k),get(paste0("lay_tr", k))(as.matrix(get(paste0("tr",k)))))
+    # assign(paste0("te",k),get(paste0("lay_te", k))(as.matrix(get(paste0("te",k)))))
+    # assign(paste0("te0",k),get(paste0("lay_te0", k))(as.matrix(get(paste0("te0",k)))))
+    
+    print(dim(get(paste0("tr",k))))
+    list_tr <- c(list_tr, get(paste0("tr",k)))
+    # list_te <- c(list_te, get(paste0("te",k)))
+    # list_te0 <- c(list_te0, get(paste0("te0",k)))
+    
+
+    print(dim(dat0[which(dat0$kuu12==k),]))
+  }
+  
+  for (k in kk){# persse, ei saa ju treeningkuuga normaliseerida sellises ülesehitused
+    #assign(paste0("tr",k), train_x[which(train_x$kuu12==k),1:36])
+    assign(paste0("te",k), test_x[which(test_x$kuu12==k),1:36])
+    # assign(paste0("te0",k), test_x0[which(test_x0$kuu12==k),1:36])
+    #tr_y <- c(tr_y, train_y[which(train_x$kuu12==k)])
+    te_y <- c(te_y, test_y[which(test_x$kuu12==k)])
+    # te0_y <- c(te0_y, test_y0[which(test_x0$kuu12==k)])
+    #iga aasta kohta oma normaliseerimise kiht
+    #assign(paste0("lay_tr", k), layer_normalization())
+    assign(paste0("lay_te", k), layer_normalization())
+    # assign(paste0("lay_te0", k), layer_normalization())
+    # v6tab keksmised ja standardh2lbed vastaavast treningseti osast
+    #adapt(get(paste0("lay_tr", k)), as.matrix(get(paste0("tr",k))))
+    adapt(get(paste0("lay_te", k)), as.matrix(get(paste0("te",k))))
+    # adapt(get(paste0("lay_te0", k)), as.matrix(get(paste0("te0",k))))
+    
+    #assign(get(paste0("tr",a)),get(paste0("lay_", a))(as.matrix(get(paste0("tr",a)))))
+    #stds <- c(stds,get(paste0("lay_", a)))
+    #assign(paste0("tr",k),get(paste0("lay_tr", k))(as.matrix(get(paste0("tr",k)))))
+    assign(paste0("te",k),get(paste0("lay_te", k))(as.matrix(get(paste0("te",k)))))
+    # assign(paste0("te0",k),get(paste0("lay_te0", k))(as.matrix(get(paste0("te0",k)))))
+    
+    #print(dim(get(paste0("tr",k))))
+    #list_tr <- c(list_tr, get(paste0("tr",k)))
+    list_te <- c(list_te, get(paste0("te",k)))
+    # list_te0 <- c(list_te0, get(paste0("te0",k)))
+    
+    print(dim(dat0[which(dat0$kuu12==k),]))
+  }
+  
+  for (k in vanad){# persse, ei saa ju treeningkuuga normaliseerida sellises ülesehitused
+    #assign(paste0("tr",k), train_x[which(train_x$kuu12==k),1:36])
+    # assign(paste0("te",k), test_x[which(test_x$kuu12==k),1:36])
+    assign(paste0("te0",k), test_x0[which(test_x0$kuu12==k),1:36])
+    #tr_y <- c(tr_y, train_y[which(train_x$kuu12==k)])
+    # te_y <- c(te_y, test_y[which(test_x$kuu12==k)])
+    te0_y <- c(te0_y, test_y0[which(test_x0$kuu12==k)])
+    #iga aasta kohta oma normaliseerimise kiht
+    #assign(paste0("lay_tr", k), layer_normalization())
+    # assign(paste0("lay_te", k), layer_normalization())
+    assign(paste0("lay_te0", k), layer_normalization())
+    # v6tab keksmised ja standardh2lbed vastaavast treningseti osast
+    #adapt(get(paste0("lay_tr", k)), as.matrix(get(paste0("tr",k))))
+    # adapt(get(paste0("lay_te", k)), as.matrix(get(paste0("te",k))))
+    adapt(get(paste0("lay_te0", k)), as.matrix(get(paste0("te0",k))))
+    
+    #assign(paste0("tr",k),get(paste0("lay_tr", k))(as.matrix(get(paste0("tr",k)))))
+    #assign(paste0("te",k),get(paste0("lay_te", k))(as.matrix(get(paste0("te",k)))))
+    assign(paste0("te0",k),get(paste0("lay_te0", k))(as.matrix(get(paste0("te0",k)))))
+    
+    #print(dim(get(paste0("tr",k))))
+    #list_tr <- c(list_tr, get(paste0("tr",k)))
+    #list_te <- c(list_te, get(paste0("te",k)))
+    list_te0 <- c(list_te0, get(paste0("te0",k)))
+    
+    print(dim(dat0[which(dat0$kuu12==k),]))
+  }
+  
+  rm(list=ls(pattern="^lay_"))
+  
+  n_train <- as.array(do.call("rbind", list_tr))
+  n_test <- as.array(do.call("rbind", list_te))
+  n_test0 <- as.array(do.call("rbind", list_te0))
+  
+  rm(list_tr)
+  rm(list_te)
+  rm(list_te0)
+  gc()
+
+  
+  n_train <- n_train[which(tr_y %in% c(0:2)),]
+  train_y <- tr_y[which(tr_y %in% c(0:2))]
+  
+  n_test <- n_test[which(te_y %in% c(0:2)),]
+  test_y <- te_y[which(te_y %in% c(0:2))]
+  
+  n_test0 <- n_test0[which(te0_y %in% c(0:2)),]
+  test_y0 <- te0_y[which(te0_y %in% c(0:2))]
+  
+  n_test <- as.matrix(n_test)
+  n_test0 <- as.matrix(n_test0)
+  n_train <- as.matrix(n_train)
+  
+  # siia läheb see reshape asi
+  test_3d <- array(n_test, dim = c(nrow(n_test), 12, 3))
+  test0_3d <- array(n_test0, dim = c(nrow(n_test0), 12, 3))
+  train_3d <- array(n_train, dim = c(nrow(n_train), 12, 3))
+  
+  train_yc <- to_categorical(train_y)
+  test_yc <- to_categorical(test_y)
+  test_y0c <- to_categorical(test_y0)
+  #  minu dim peaks olema 12 x 3
+  sisendikuju <- dim(train_3d)[-1]
+  model <- keras_model_sequential(input_shape = c(sisendikuju)) %>%
+    layer_conv_1d(20,3, activation = "relu") %>%
+    layer_spatial_dropout_1d(0.25) %>% 
+    #layer_dropout(0.33) %>%# spatial dropout ??? https://tensorflow.rstudio.com/reference/keras/layer_spatial_dropout_1d
+    layer_conv_1d(40,3, activation = "relu") %>%
+    #layer_dropout(0.25) %>%
+    layer_spatial_dropout_1d(0.20) %>%
+    layer_conv_1d(30, 3,activation = "relu") %>%
+    layer_spatial_dropout_1d(0.15) %>%
+    #layer_dropout(0.20) %>%
+    layer_flatten() %>% 
+    layer_dense(16, activation = "relu") %>% 
+    layer_dropout(0.1) %>%
+    layer_dense(8, activation = "relu") %>% 
+    layer_dropout(0.055555) %>%
+    layer_dense(3, activation = "softmax")
+  model
+  
+  model %>% compile(
+    #optimizer = "adam",
+    optimizer = optimizer_adam(learning_rate=0.0016),
+    loss = "categorical_crossentropy", # one-hot encoded??
+    metrics = c(metric_categorical_accuracy(),metric_top_k_categorical_accuracy(k=2L))
+  )
+  
+  history <- model %>% fit(
+    train_3d,
+    train_yc,
+    batch_size = 32,
+    epochs = 100,
+    validation_split = 0.10,
+    callbacks = list(callback_csv_logger(paste0("log_kuine_PROD_1_",i,"_", "_",klaster,".csv")),
+                     callback_reduce_lr_on_plateau(monitor = "val_loss",
+                                                   factor = 0.6,
+                                                   patience = 8,
+                                                   verbose = 0,
+                                                   mode = "auto",
+                                                   min_delta = 1e-04,
+                                                   cooldown = 1,
+                                                   min_lr = 0.000066))
+  )
+  
+  pp <- model %>% evaluate(test_3d,  test_yc, verbose = 2)
+  pp0 <- model %>% evaluate(test0_3d,  test_y0c, verbose = 2)
+  print(pp)
+  print(pp0)
+  test_pred = model %>% predict(test_3d)
+  test_pred0 = model %>% predict(test0_3d)
+  
+  oo <- as.data.frame(test_pred) %>% rowwise() %>% mutate(maxpos = which.max(c(V1  ,V2  ,V3)))
+  oo0 <- as.data.frame(test_pred0) %>% rowwise() %>% mutate(maxpos = which.max(c(V1  ,V2  ,V3)))
+  
+  m <- confusionMatrix(data=as.factor(oo$maxpos-1), reference= as.factor(test_y))
+  m0 <- confusionMatrix(data=as.factor(oo0$maxpos-1), reference= as.factor(test_y0))
+  
+  
+  segmats[[i]] <- m$table
+  segmats0[[i]] <- m0$table
+  
+  
+  
+  pl <- as.data.frame(cbind(test_pred, test_y))
+  names(pl) <- c("ennustus", "tegelik")
+  
+  save_model_hdf5(model, paste0("/home/rstudio/treenitud_kuine_PROD_1/","Kuine_PROD_1_suhtelise_kasvu_klass_kmd_tsd_tor_",i,"_", klaster, ".h5"))
+  
+  plots[[i]] <- pl
+  tulemused[[i]] <- c(paste0("kuine_PROD_1_",klaster), 100*round(history$metrics$categorical_accuracy[length(history$metrics$categorical_accuracy)],3),
+                      100*round(history$metrics$val_categorical_accuracy[length(history$metrics$val_categorical_accuracy)],3),
+                      round(pp[[1]][1], 3), 100*round(pp[[2]][1], 3),round(pp0[[1]][1], 3), 100*round(pp0[[2]][1], 3))
+  rm(model)
+  rm(history)
+  rm(test_pred)
+  rm(dat0)
+  if (i==4) {
+    o <- cbind(tulemused[1 ][[1]],
+               tulemused[2 ][[1]],
+               tulemused[3 ][[1]],
+               tulemused[4 ][[1]])
+    o <- as.data.frame(t(o))
+    names(o) <- c("mudel", "tr_acc",	"val_acc"	,"test_loss","test_acc","test0_loss","test0_acc" )
+    o <- type.convert(o, as.is = TRUE)
+    write.table(o, paste0("/home/rstudio/out/tabel/", eksperimendinimi,".csv"), row.names = F)
+    
+    
+    for (u in 1:4) {
+      if (u==1) {
+        j <- prop.table(segmats[[u]])
+        s <- j
+      }
+      j <- prop.table(segmats[[u]])
+      s <- s+j
+    }
+    s <- round(s/4, 1)
+    print(s)
+    
+    for (u in 1:4) {
+      if (u==1) {
+        j <- prop.table(segmats0[[u]])
+        s2 <- j
+      }
+      j <- prop.table(segmats0[[u]])
+      s2 <- s2+j
+    }
+    s2 <- round(s2/4, 1)
+    print(s2)
+    print(o)
+  }
+  # print(table(train$lbl))
+}

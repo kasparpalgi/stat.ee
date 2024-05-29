@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+
+tensorflowjs_converter \
+    --input_format=keras \
+    ./models/kasvu_k4_1.h5 \
+    ./models/kasvu_k4_1
