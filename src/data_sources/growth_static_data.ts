@@ -1,3 +1,5 @@
+// docs/sql-tables-columns/andmetyybid_kuised.xlsx - tab: kuised
+
 import GrowthEntity from "../entities/growth_entity";
 
 export default function getGrowthData() : number[] {

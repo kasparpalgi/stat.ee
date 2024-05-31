@@ -1,3 +1,5 @@
+// docs/sql-tables-columns/UUSKLASTETR_sds_64_2022_2023_normaliseerimiseks.csv
+
 import ClusterEntity from "../entities/cluster_entity"
 
 export function findSdsByCluster(clusterName: string): ClusterEntity | undefined {
