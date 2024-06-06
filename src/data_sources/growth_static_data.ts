@@ -1,3 +1,5 @@
+// KUISED
+
 import GrowthEntity from "../entities/growth_entity";
 import { checkMissingProperties } from "../utils/validator";
 

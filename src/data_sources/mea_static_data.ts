@@ -1,3 +1,5 @@
+// docs/sql-tables-columns/UUSKLASTER_mea_64_2022_2023_normaliseerimiseks.csv
+
 import ClusterEntity from "../entities/cluster_entity"
 
 export function findMeaByCluster(clusterName: string): ClusterEntity | undefined {
