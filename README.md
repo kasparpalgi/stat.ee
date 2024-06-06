@@ -6,3 +6,13 @@
 4. Data: [src/data_sources](src/data_sources)
 5. Vaata: [src/predictor.ts](src/predictor.ts)
 6. Vaata: [docs/todo.md](docs/todo.md)
+
+# tech stack
+
+* TypeScript
+* NodeJS
+* ExpressJS (NodeJS framework)
+* Tensorflow
+* Babel (JavaScript compiler)
+* Jest (testide jaoks)
+* Winston (logger)
