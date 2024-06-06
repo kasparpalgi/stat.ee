@@ -1,0 +1,7 @@
+- "!include elujoulisuseindeks_aastased.yaml"
+- "!include elujoulisuseindeks_kuised.yaml"
+- "!include elujoulisuseindeks_norm_aasta_kesk_uus.yaml"
+- "!include elujoulisuseindeks_norm_aasta_kesk_vana.yaml"
+- "!include elujoulisuseindeks_norm_aasta_sds_vana.yaml"
+- "!include elujoulisuseindeks_norm_kuu_kesk.yaml"
+- "!include elujoulisuseindeks_norm_kuu_sds.yaml"

@@ -60,6 +60,11 @@ export const ERRORS = asErrors({
         status: StatusCodes.INTERNAL_SERVER_ERROR,
         message: 'Internal server error',
     },
+    'insufficient-data': {
+        status: StatusCodes.BAD_REQUEST,
+        message: 'Ennustust ei tee, andmed puudulikud',
+    
+    }
 });
 
 export const sendError = (
@@ -75,7 +80,9 @@ export const sendError = (
     const message = customMessage ?? error.message;
     const status = error.status;
 
-    return res.status(status).send({ status, message, error: error });
+    return res.status(status).json({
+        description: message,
+    });
 };
 
 /**
