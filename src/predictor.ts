@@ -33,7 +33,7 @@ export default class ModelRunner {
           logger.debug(error);
           return sendError(res, "bad-request");
       }
-    }
+    } 
   }
 
   private prepareData(company: CompanyData): Array<number> {
@@ -53,9 +53,7 @@ export default class ModelRunner {
     return Object.values(dividedData);
   }
 
-  private async tensor(values: Array<number>): Promise<tf.Tensor2D> {
-    return tf.tensor2d(values, [1, 64]);
-  }
+
 
   // Note: LoadLayersModel is only loading the model from a url, not from a local file
   private async loadModel(
@@ -195,23 +193,35 @@ export default class ModelRunner {
     const layer = await this.loadModel(company.Klaster, Indicator.Growth);
     // Fetch the growth data required for prediction.
     const flatArray = getGrowthData();
-    logger.debug("numbers", flatArray);
+    // logger.debug("numbers", flatArray);
     // Create a tensor from the flattened array.
     const x = tf.tensor(flatArray, [36]);
     // Reshape the tensor to the required shape [1, 12, 3].
     const reshapedX = x.reshape([1, 3, 12]);
-    tf.print(reshapedX, true);
-    logger.debug("transformed", reshapedX);
+
+    // tf.print(reshapedX, true);
+    // logger.debug("transformed", reshapedX);
     // Transpose the tensor to match the expected shape [null, 12, 3].
     const transposedX = reshapedX.transpose([0, 2, 1]);
-    tf.print(transposedX, true);
-    logger.debug("transposed", transposedX);
+
+    // tf.print(transposedX, true);
+    // logger.debug("transposed", transposedX);
     // Make a prediction using the model layer and the transposed tensor.
     const prediction = await layer.predict(transposedX);
     // Synchronize the prediction data to a typed array.
     const dataSync = (prediction as tf.Tensor).dataSync();
+   
     // Return the prediction results as an object with x, y, and z values.
-    console.log("result", dataSync);
+    // console.log("result", dataSync);
+
+    // Dispose of the tensors to free up memory.
+    x.dispose()
+    reshapedX.dispose()
+    transposedX.dispose()
+    tf.disposeVariables();
+    (prediction as tf.Tensor).dispose();
+    // Print the memory usage to the console.
+    console.log('memory', tf.memory());
     return {
       x: dataSync[0],
       y: dataSync[1],
@@ -228,12 +238,17 @@ export default class ModelRunner {
     }
 
     const data = this.prepareData(companyData);
-    const tensor = await this.tensor(data);
+    const tensor = await tf.tensor2d(data, [1, 64]);
     const loadedModel = await this.loadModel(companyData.Klaster, indicator);
 
     // This has to be awaited
     const prediction = await (loadedModel.predict(tensor) as tf.Tensor);
     const dataSync = prediction.dataSync();
+
+    // Dispose of the tensors to free up memory.
+    prediction.dispose();
+    tensor.dispose();
+    loadedModel.dispose();
 
     return {
       x: dataSync[0],

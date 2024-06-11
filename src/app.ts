@@ -7,7 +7,7 @@ import ModelRunner from './predictor';
 
 const app = express();
 export const port = 80;
-
+app.use(require('express-status-monitor')());
 app.use('/static',express.static('models'))
 app.get('/eestat/1/elujoud/:id', async (req: Request, res: Response) => new ModelRunner().handleRequest(req, res));
 
