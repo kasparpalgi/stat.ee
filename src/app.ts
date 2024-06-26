@@ -1,15 +1,18 @@
 import express, { Request, Response } from 'express';
-import { logger } from './utils/logger';
-import { sendError } from './utils/errors';
+import { sendError } from './application';
 import { ReasonPhrases } from 'http-status-codes';
-import ModelRunner from './predictor';
+import handleElujoud from './application/routes/eestat/1/elujoud/id';
+import handleFilteredAastased from './application/routes/filtered-aastased/id';
 
+require('dotenv').config();
+
+export const port = 3000;
 
 const app = express();
-export const port = 80;
 app.use(require('express-status-monitor')());
-app.use('/static',express.static('models'))
-app.get('/eestat/1/elujoud/:id', async (req: Request, res: Response) => new ModelRunner().handleRequest(req, res));
+app.use('/static', express.static('models'))
+app.get('/eestat/1/elujoud/:id', async (req: Request, res: Response) => handleElujoud(req, res));
+app.get('/filtered-aastased/:id', async (req: Request, res: Response) => handleFilteredAastased(req, res));
 
 /**
  * GET /healthz
@@ -25,5 +28,5 @@ app.use('*', (_req, res) => {
 });
 
 app.listen(port, () => {
-    logger.info(`Running on port ${port}`);
+    console.log(`Running on port ${port}`);
 });
