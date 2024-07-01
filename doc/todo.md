@@ -1,5 +1,5 @@
 # stat-ee
- 
+
 ## TODO
 
 * ~~Jaaniga kohtumine~~
@@ -14,7 +14,9 @@
 
 ## Ülesande püstitus
 
-1. Võtta ettevõtte reg. koodi järgi Oracle'st selle ettevõtte viimase baasis oleva aasta kõik 64 välja õiges järjekorras `norm_sisendvektor`​ [tabelist](https://docs.google.com/spreadsheets/d/19ymXCgCwaDvbDbbySZQ3VOuT1Xusz9BtXlqIO4pJ0rk). Kõikide väljade vaikimisi väärtus on `0` (kui datat pole, siis on 0). Ootan andmebaasi struktuuri ja ligipääsu.
+![diagram](./ülesande_püstituse_diagram.png)
+
+0. Võtta ettevõtte reg. koodi järgi `jykood` Oracle'st rida (kui see eksisteerib) selle ettevõtte viimase baasis oleva `aasta` 64 välja alates `kaibevarad` väljast. Kõikide väljade vaikimisi väärtus on `0` (kui datat pole, siis on 0).
 2. Kõrgemad otsad maha (Hans või Jaan - viita, kust ma saan iga 64 välja kohta info, et mis on max ehk siis näiteks, et `kaibevarad` 100 ja kui mõnel ettevõttel on 101 või miljard, siis mina kasutan ikka 100). Kas see 100 on näide või ongi 100 see number?
 3. Ettevõtte sektori järgi valida 4 õiget mudelit 20st. k4_1 ... k4_4
 4. Kõigist 64 arvust lahutada vastav number `mea` [tabelist](https://docs.google.com/spreadsheets/d/1xQovBVylikPfnDzzJF7qJADa06Ya8ozLGXptgo3dVHE) sõltuvalt mudelist (punkt 3)
@@ -94,81 +96,81 @@ https://github.com/kvartiil/mudelid1valjund
 
 ## id_d_taustatunnused (ID-d ja taustatunnused)
  	id
- 	aasta	 
- 	jy_kood	 
- 	emtak	 
- 	sektor_nr	 
+ 	aasta
+ 	jy_kood
+ 	emtak
+ 	sektor_nr
  	sektor_txt, string
  	klaster, string
- 	kov	 
- 	maakond	 
- 	ettevotte_suurusklass	 
+ 	kov
+ 	maakond
+ 	ettevotte_suurusklass
 ## norm_sisendvektor (normaliseerimata sisendvektor MAA mudelite jaoks=
- 	kaibevarad	 
- 	raha	 
+ 	kaibevarad
+ 	raha
  	lyh_nouded (lühiajalised nõuded)
  	lyh_fin_invest (lühiajalised finantsinvesteeringud)
- 	varud	 
- 	pohivarad	 
- 	pikaajalised_nouded	 
+ 	varud
+ 	pohivarad
+ 	pikaajalised_nouded
  	pikad_finan_invest (Pikaajalised finantsinvesteeringud)
- 	kinnisvara_invest	 
+ 	kinnisvara_invest
  	mat_pohivara (Matiaalne põhivara)
  	imm_pohivare (Immateriaalne põhivara)
- 	varad_kokku	 
+ 	varad_kokku
  	lyh_kohustused (Lühiajalised kohustused)
- 	lyh_volad	 
- 	lyh_laenud	 
+ 	lyh_volad
+ 	lyh_laenud
  	pik_kohustused (Pikaajalised kohustused)
- 	pik_volad	 
- 	pik_laenud	 
- 	kohustused_kokku	 
- 	omakapital	 
- 	kohustused_omakapital (Kohustused ja omakapital kokku)	 
- 	myygitulu	 
- 	muud_aritulud	 
- 	muud_arikulud	 
- 	toojoukulud	 
- 	arikasum	 
- 	intressikulud	 
- 	aruandeaasta_kasum	 
- 	ds_kaibevarad	 
- 	ds_raha	 
- 	ds_lyh_nouded	 
- 	ds_lyh_fin_invest	 
- 	ds_varud	 
- 	ds_pohivarad	 
- 	ds_pik_nouded	 
- 	ds_pik_finan_invest	 
- 	ds_kinnisvara_invest	 
- 	ds_mat_pohivara	 
- 	ds_immat_pohivara	 
- 	ds_varad_kokku	 
- 	ds_lyh_kohustused	 
- 	ds_lyh_volad	 
- 	ds_lyh_laenud	 
- 	ds_pik_kohustused	 
- 	ds_pik_volad	 
- 	ds_pik_laenud	 
+ 	pik_volad
+ 	pik_laenud
+ 	kohustused_kokku
+ 	omakapital
+ 	kohustused_omakapital (Kohustused ja omakapital kokku)
+ 	myygitulu
+ 	muud_aritulud
+ 	muud_arikulud
+ 	toojoukulud
+ 	arikasum
+ 	intressikulud
+ 	aruandeaasta_kasum
+ 	ds_kaibevarad
+ 	ds_raha
+ 	ds_lyh_nouded
+ 	ds_lyh_fin_invest
+ 	ds_varud
+ 	ds_pohivarad
+ 	ds_pik_nouded
+ 	ds_pik_finan_invest
+ 	ds_kinnisvara_invest
+ 	ds_mat_pohivara
+ 	ds_immat_pohivara
+ 	ds_varad_kokku
+ 	ds_lyh_kohustused
+ 	ds_lyh_volad
+ 	ds_lyh_laenud
+ 	ds_pik_kohustused
+ 	ds_pik_volad
+ 	ds_pik_laenud
  	ds_koh_kokku (Kohustused kokku)
- 	ds_omakapital	 
- 	ds_koh_omakapital_kokku	 
- 	ds_myygitulu	 
- 	ds_muud_aritulud	 
- 	ds_muud_arikulud	 
- 	ds_oojoukulud	 
- 	ds_arikasum	 
- 	ds_intressikulud	 
- 	ds_aruandeaasta_kasum	 
- 	skp_jooksevhindades	 
- 	skp_nominaalkasv	 
- 	skp_pysivhindades	 
- 	skp_reaalkasv	 
- 	tarbijahinnaindeks	 
- 	keskmine_kuupalk	 
- 	palgakasv	 
- 	tooviljakuse_kasv	 
-## do nohetk_kuva (Hetkeseisu kuvamised)	 	 
+ 	ds_omakapital
+ 	ds_koh_omakapital_kokku
+ 	ds_myygitulu
+ 	ds_muud_aritulud
+ 	ds_muud_arikulud
+ 	ds_oojoukulud
+ 	ds_arikasum
+ 	ds_intressikulud
+ 	ds_aruandeaasta_kasum
+ 	skp_jooksevhindades
+ 	skp_nominaalkasv
+ 	skp_pysivhindades
+ 	skp_reaalkasv
+ 	tarbijahinnaindeks
+ 	keskmine_kuupalk
+ 	palgakasv
+ 	tooviljakuse_kasv
+## do nohetk_kuva (Hetkeseisu kuvamised)
  	sek_likv_prots (Sektori likviidsus protsendiil)
     sek_likv_n
     sek_struk_prots (Sektori struktuur protsendiil)
@@ -208,7 +210,7 @@ https://github.com/kvartiil/mudelid1valjund
     suurusk_efekt_prots
     suurusk_efekt_n
     suurusk_tasuv_prots
-    suurusk_tasuv_n 
+    suurusk_tasuv_n
 
 
     See konkreetne 64-ne jupp on normaliseerimata sisendvektor masinõppemudelile. Seal tuleb kõigepealt kerge eeltöötlus (R failis – mis tunnustel kust maalt otsad ära clippida) ja siis normaliseerimine:l tuleb lahutada vastava klastri keskmine ja jagada standardhälbega (need on need vastavad abitabelid).
