@@ -18,8 +18,13 @@ export class ModelService {
     this.repository = new Repository();
   }
 
-    // Note: LoadLayersModel is only loading the model from a url, not from a local file
-   async  loadModel(
+  /**
+   * Loads a TensorFlow Layers Model.
+   * @param cluster - The cluster name.
+   * @param model - The model indicator.
+   * @returns A promise that resolves to a TensorFlow Layers Model.
+   */
+  async  loadClusterModel(
     cluster: string,
     model: ModelIndicator
   ): Promise<tf.LayersModel> {
@@ -34,9 +39,15 @@ export class ModelService {
   }
 
 
+  /**
+   * Applies the `mea` and `sds` values to the yearly data.
+   * 
+   * @param yearly - The yearly data to be processed.
+   * @returns A Promise that resolves to the processed yearly data.
+   */
   async applyMeaAndSds(yearly: Yearly): Promise<YearlyCluster> {
     // Retrieves the cluster values for the company.
-    const cluster = yearly.toCluster();
+    const cluster = yearly.toCluster().clamp();
 
     const clusterName = yearly.klaster;
     // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
@@ -50,15 +61,21 @@ export class ModelService {
     return dividedData;
   }
 
-  async predictJykood(jykood: number, landPercent?: number | undefined): Promise<any>{
-    const yearly = await this.repository.getJykood(jykood, landPercent);
-    let prediction = await this.response(yearly);
+  /**
+   * Predicts the data for a given jykood (a number representing a specific code) and optional land percentage.
+   * 
+   * @param jykood - The jykood for which to predict the data.
+   * @param maaProtsent - The minimum land percentage.
+   * @returns A Promise that resolves to the predicted data.
+   */
+  async predictJykood(jykood: number, maaProtsent?: number | undefined): Promise<any>{
+    const yearly = await this.repository.getJykood(jykood, maaProtsent);
+    let prediction = await this.predictionResponse(yearly);
     // For 200 OK responses, the body should directly include the actual data as defined by Palgastatistka.
     const response = {
       ...prediction.serialize(),
       ...yearly.serialize()
     };
-
     return response;
   }
 
@@ -68,7 +85,7 @@ export class ModelService {
    * @param yearly - The yearly data.
    * @returns A promise that resolves to the prediction response.
    */
-  async response(yearly: Yearly): Promise<PredictionResponse> {
+  async predictionResponse(yearly: Yearly): Promise<PredictionResponse> {
     const response = new PredictionResponse();
 
     const liquidity = await this.predictIndicator(yearly, ModelIndicator.Liquidity);
@@ -96,9 +113,14 @@ export class ModelService {
   }
 
 
+  /**
+   * Predicts the growth indicator for a given yearly data.
+   * @param yearly - The yearly data for prediction.
+   * @returns A Promise that resolves to the prediction results as an object with x, y, and z values.
+   */
   async  predictGrowthIndicator(yearly: Yearly): Promise<Prediction> {
     // Load the pre-trained model layer for the specified cluster and indicator.
-    const layer = await this.loadModel(yearly.klaster, ModelIndicator.Growth);
+    const layer = await this.loadClusterModel(yearly.klaster, ModelIndicator.Growth);
     // Fetch the growth data required for prediction.
     const monthly = await this.repository.getMonthly(yearly.klaster);
     const monthlyArray = monthly.asArray();
@@ -128,6 +150,12 @@ export class ModelService {
     };
   }
 
+  /**
+   * Predicts an indicator based on the provided yearly data.
+   * @param yearly - The yearly data.
+   * @param indicator - The indicator to predict.
+   * @returns A Promise that resolves to the predicted values.
+   */
   async predictIndicator(
     yearly: Yearly,
     indicator: ModelIndicator
@@ -140,7 +168,7 @@ export class ModelService {
     const data = await this.applyMeaAndSds(yearly);
     const dataArray = data.toArray();
     const tensor = await tf.tensor2d(dataArray, [1, 64]);
-    const loadedModel = await this.loadModel(yearly.klaster, indicator);
+    const loadedModel = await this.loadClusterModel(yearly.klaster, indicator);
 
     // This has to be awaited
     const prediction = await (loadedModel.predict(tensor) as tf.Tensor);
@@ -158,3 +186,6 @@ export class ModelService {
     };
   }
 }
+
+
+

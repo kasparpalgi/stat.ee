@@ -1,0 +1,110 @@
+---
+title: 'Predicting an Growth Indicator'
+---
+
+This documentation provides a step-by-step guide to understand and use the `predictGrowthIndicator`, which represents the service for working with models.
+
+
+## predictGrowthIndicator
+
+```typescript
+/**
+ * Predicts the growth indicator for a given yearly data.
+ * @param yearly - The yearly data for prediction.
+ * @returns A Promise that resolves to the prediction results as an object with x, y, and z values.
+ */
+async predictGrowthIndicator(yearly: Yearly): Promise<Prediction>
+```
+### Step 1: Load Model Layer
+The service loads the pre-trained model layer for the specified cluster and growth indicator.
+
+```typescript
+const layer = await this.loadModel(yearly.klaster, ModelIndicator.Growth);
+```
+
+### Step 2: Fetch Growth Data
+The service fetches the monthly data required for prediction.
+
+```typescript
+const monthly = await this.repository.getMonthly(yearly.klaster);
+const monthlyArray = monthly.asArray();
+```
+### Step 3: Create Tensor
+A tensor is created from the flattened array of monthly data.
+
+```typescript
+const x = tf.tensor(monthlyArray, [36]);
+```
+### Step 4: Reshape Tensor
+The tensor is reshaped to the required shape [1, 12, 3].
+
+```typescript
+const reshapedX = x.reshape([1, 3, 12]);
+```
+### Step 5: Transpose Tensor
+The reshaped tensor is transposed to match the expected shape [null, 12, 3].
+
+```typescript
+const transposedX = reshapedX.transpose([0, 2, 1]);
+```
+### Step 6: Make Prediction
+The service makes a prediction using the model layer and the transposed tensor.
+
+```typescript
+const prediction = await layer.predict(transposedX);
+```
+### Step 7: Synchronize Data
+The prediction data is synchronized to a typed array.
+
+```typescript
+const dataSync = (prediction as tf.Tensor).dataSync();
+```
+### Step 8: Dispose Tensors
+To free up memory, the service disposes of the tensors and variables after prediction.
+
+```typescript
+x.dispose();
+reshapedX.dispose();
+transposedX.dispose();
+tf.disposeVariables();
+(prediction as tf.Tensor).dispose();
+```
+### Step9: Log Memory Usage
+The service prints the memory usage to the console for debugging purposes.
+```typescript
+console.log('debug', tf.memory());
+```
+### Step10: Return Predicted Values
+Finally, the service returns the prediction results in an object with properties x, y, and z.
+
+```typescript
+return {
+  x: dataSync[0],
+  y: dataSync[1],
+  z: dataSync[2],
+};
+```
+
+#### Example Usage
+
+```javascript
+const yearlyData = { /* yearly data object */ };
+
+predictGrowthIndicator(yearlyData)
+  .then(prediction => {
+    console.log(prediction);
+  })
+  .catch(error => {
+    console.error(error);
+  });
+```typescript
+const yearlyData: Yearly = { /* yearly data object */ };
+
+predictGrowthIndicator(yearlyData)
+  .then((prediction: Prediction) => {
+    console.log(prediction);
+  })
+  .catch((error: Error) => {
+    console.error(error);
+  });
+```

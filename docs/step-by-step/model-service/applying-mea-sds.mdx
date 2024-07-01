@@ -1,0 +1,76 @@
+---
+title: 'Applying MEA and SDS'
+---
+
+This documentation provides a step-by-step guide to understand and use the `applyMeaAndSds` service, which applies the MEA and SDS values to the data.
+
+## applyMeaAndSds
+
+```typescript
+/**
+ * Applies the `mea` and `sds` values to the data.
+ * 
+ * @param yearly - The data to be processed.
+ * @returns A Promise that resolves to the processed data.
+ */
+async applyMeaAndSds(yearly: Yearly): Promise<YearlyCluster>
+```
+
+### Step 1: Retrieve Cluster Values
+The service retrieves the cluster values for the company from the data.
+
+```typescript
+const cluster = yearly.toCluster();
+```
+### Step 2: Get Cluster Name
+The service gets the cluster name from the data.
+
+```typescript
+const clusterName = yearly.klaster;
+```
+### Step 3: Subtract MEA Values
+The service retrieves the MEA values based on the cluster name and subtracts the corresponding MEA value from each retrieved field.
+
+```typescript
+const mea = await this.repository.getMea(clusterName);
+const substractedMea = cluster.substract(mea);
+```
+### Step 4: Divide by SDS Values
+The service retrieves the SDS values based on the cluster name and divides each field by the corresponding SDS value.
+
+```typescript
+const sds = await this.repository.getSds(clusterName);
+const dividedData = substractedMea.divide(sds);
+```
+
+### Step 5: Return Processed Data
+Finally, the service returns the processed data.
+
+```typescript
+return dividedData;
+```
+
+### Example Usage
+
+```javascript
+const yearlyData = { /* data object */ };
+
+applyMeaAndSds(yearlyData)
+  .then(processedData => {
+    console.log(processedData);
+  })
+  .catch(error => {
+    console.error(error);
+  });
+```typescript
+const yearlyData: Yearly = { /* data object */ };
+
+applyMeaAndSds(yearlyData)
+  .then((processedData: YearlyCluster) => {
+    console.log(processedData);
+  })
+  .catch((error: Error) => {
+    console.error(error);
+  });
+</TabItem>
+</Tabs>

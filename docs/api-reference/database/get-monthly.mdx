@@ -1,0 +1,75 @@
+---
+title: Monthly
+description: Explanation of the query for Postgres and Oracle to retrieve the monthly cluster data based on klaster.
+---
+## Function Description
+
+The function `getMonthly` retrieves the monthly cluster data for a specified `klaster`. It accepts one parameter:
+
+- `klaster` (string): The klaster identifier.
+
+The function returns a Promise that resolves to the `MonthlyCluster` object.
+
+### Implementation
+
+Here is the implementation of the `getMonthly` function:
+
+```typescript
+/**
+ * Retrieves the monthly cluster data for a given cluster.
+ * @param klaster - The cluster identifier.
+ * @returns A promise that resolves to the monthly cluster data.
+ */
+async getMonthly(klaster: string): Promise<MonthlyCluster> {
+    const pg = `
+        SELECT *
+        FROM "elujoulisuseindeks"."kuised"
+        WHERE "klaster" = '${klaster}'
+        LIMIT 1;
+    `;
+    const oracle = `
+        SELECT *
+        FROM elujoulisuseindeks.kuised
+        WHERE klaster = '${klaster}'
+        FETCH FIRST 1 ROWS ONLY;
+    `;
+    const response = await dbQuery(pg, oracle);
+    
+    const cluster = MonthlyCluster.deserialize(response).clamp();
+    checkMissingProperties(cluster, 3);
+    return cluster;
+}
+```
+### Postgres Query
+
+The Postgres query to retrieve the monthly cluster data is as follows:
+
+```sql
+SELECT *
+FROM "elujoulisuseindeks"."kuised"
+WHERE "klaster" = '${klaster}'
+LIMIT 1;
+```
+
+> The query selects all columns from the "elujoulisuseindeks"."kuised" table.
+> It filters the results where "klaster" equals the provided klaster value.
+> The query limits the results to the first row.
+
+### Oracle Query
+
+The Oracle query to retrieve the monthly cluster data is as follows:
+
+```sql
+SELECT *
+FROM elujoulisuseindeks.kuised
+WHERE klaster = '${klaster}'
+FETCH FIRST 1 ROWS ONLY;
+```
+The query selects all columns from the elujoulisuseindeks.kuised table.
+It filters the results where klaster equals the provided klaster value.
+The query fetches only the first row of the results.
+Additional Logic
+After retrieving the data and deserializing it into a MonthlyCluster object, the clamp method is applied to ensure the data is within expected bounds. Additionally, the checkMissingProperties function is called to verify that the cluster has the necessary properties, with a threshold of 3 properties to check.
+
+## Summary
+The getMonthly function constructs SQL queries for both Postgres and Oracle to retrieve the monthly cluster data based on the provided klaster. It then executes the appropriate query and deserializes the response into a MonthlyCluster object, applying the clamp method and checking for missing properties.

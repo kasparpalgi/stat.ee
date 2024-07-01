@@ -1,0 +1,86 @@
+---
+title: Yearly
+description: Explanation of the query for Postgres and Oracle to retrieve yearly data based on `jykood` and `maaProtsent`.
+---
+
+## Function Description
+
+The function `getJykood` retrieves the yearly data for a given `jykood`. It accepts two parameters:
+
+- `jykood` (number): The jykood value.
+- `maaProtsent` (number, optional): The optional land percentage value.
+
+The function returns a Promise that resolves to a `Yearly` object.
+
+### Implementation
+
+Here is the implementation of the `getJykood` function:
+
+```typescript
+/**
+ * Retrieves the yearly data for a given jykood.
+ * @param jykood - The jykood value.
+ * @param maaProtsent - Optional land percentage value.
+ * @returns A Promise that resolves to a Yearly object.
+ */
+async getJykood(jykood: number, maaProtsent?: number | undefined): Promise<Yearly> {
+    const pg = `
+        SELECT *
+        FROM "elujoulisuseindeks"."aastased"
+        WHERE "jykood" = ${jykood}
+        ${maaProtsent ? `AND "maa_protsent" >= ${maaProtsent}` : ''}
+        ORDER BY "aasta" DESC
+        LIMIT 1;
+    `;
+    const oracle = `
+        SELECT *
+        FROM elujoulisuseindeks.aastased
+        WHERE jykood = ${jykood}
+        ${maaProtsent ? `AND maa_protsent >= ${maaProtsent}` : ''}
+        ORDER BY aasta DESC
+        FETCH FIRST 1 ROWS ONLY;
+    `;
+    const response = await dbQuery(pg, oracle);
+    const result = Yearly.deserialize(response);
+    return result;
+}
+```
+### Postgres Query
+
+The Postgres query to retrieve the yearly data is as follows:
+
+```sql
+SELECT *
+FROM "elujoulisuseindeks"."aastased"
+WHERE "jykood" = ${jykood}
+${maaProtsent ? `AND "maa_protsent" >= ${maaProtsent}` : ''}
+ORDER BY "aasta" DESC
+LIMIT 1;
+```
+
+> The query selects all columns from the "elujoulisuseindeks"."aastased" table.
+> It filters the results where "jykood" equals the provided jykood value.
+> If maaProtsent is provided, it adds a condition to filter results where "maa_protsent" is greater than or equal to maaProtsent.
+> The results are ordered by "aasta" in descending order.
+> The query limits the results to the first row.
+
+### Oracle Query
+The Oracle query to retrieve the yearly data is as follows:
+
+```sql
+SELECT *
+FROM elujoulisuseindeks.aastased
+WHERE jykood = ${jykood}
+${maaProtsent ? `AND maa_protsent >= ${maaProtsent}` : ''}
+ORDER BY aasta DESC
+FETCH FIRST 1 ROWS ONLY;
+```
+
+> The query selects all columns from the elujoulisuseindeks.aastased table.
+> It filters the results where jykood equals the provided jykood value.
+> If maaProtsent is provided, it adds a condition to filter results where maa_protsent is greater than or equal to maaProtsent.
+> The results are ordered by aasta in descending order.
+> The query fetches only the first row of the results.
+
+## Summary
+The getJykood function constructs SQL queries for both Postgres and Oracle to retrieve yearly data based on the provided jykood and an optional maaProtsent. It then executes the appropriate query and deserializes the response into a Yearly object.

@@ -1,0 +1,104 @@
+---
+title: 'Retrieve a prediction response'
+---
+
+This documentation provides a step-by-step guide to understand and use the `predictionResponse` service, which retrieves the prediction response for the given yearly data.
+
+### predictionResponse
+
+```typescript
+/**
+ * Retrieves the prediction response for the given yearly data.
+ * @param yearly - The yearly data.
+ * @returns A promise that resolves to the prediction response.
+ */
+async predictionResponse(yearly: Yearly): Promise<PredictionResponse>
+```
+### Step 1: Initialize Response Object
+The service initializes a new PredictionResponse object.
+
+```typescript
+const response = new PredictionResponse();
+```
+### Step 2: Predict Liquidity Indicator
+The service predicts the Liquidity indicator using the predictIndicator method and assigns the results to response.model1y1, response.model1y2, and response.model1y3.
+
+```typescript
+const liquidity = await this.predictIndicator(yearly, ModelIndicator.Liquidity);
+response.model1y1 = liquidity.x;
+response.model1y2 = liquidity.y;
+response.model1y3 = liquidity.z;
+```
+Step 3: Predict Profitability Indicator
+The service predicts the Profitability indicator and assigns the results to response.model2y1, response.model2y2, and response.model2y3.
+
+```typescript
+const profitability = await this.predictIndicator(yearly, ModelIndicator.Profitability);
+response.model2y1 = profitability.x;
+response.model2y2 = profitability.y;
+response.model2y3 = profitability.z;
+```
+
+### Step 4: Predict Efficiency Indicator
+The service predicts the Efficiency indicator and assigns the results to response.model3y1, response.model3y2, and response.model3y3.
+
+```typescript
+const efficiency = await this.predictIndicator(yearly, ModelIndicator.Efficiency);
+response.model3y1 = efficiency.x;
+response.model3y2 = efficiency.y;
+response.model3y3 = efficiency.z;
+```
+### Step 5: Predict Structure Indicator
+The service predicts the Structure indicator and assigns the results to response.model4y1, response.model4y2, and response.model4y3.
+
+```typescript
+const structure = await this.predictIndicator(yearly, ModelIndicator.Structure);
+response.model4y1 = structure.x;
+response.model4y2 = structure.y;
+response.model4y3 = structure.z;
+```
+### Step 6: Predict Growth Indicator
+The service predicts the Growth indicator and assigns the results to response.model5y1, response.model5y2, and response.model5y3.
+
+```typescript
+const growth = await this.predictIndicator(yearly, ModelIndicator.Growth);
+response.model5y1 = growth.x;
+response.model5y2 = growth.y;
+response.model5y3 = growth.z;
+```
+### Step 7: Return Prediction Response
+Finally, the service returns the populated PredictionResponse object.
+
+```typescript
+class PredictionResponse extends SerializableEntity {
+    model1y1: number
+    model1y2: number
+    model1y3: number
+    model2y1: number
+    model2y2: number
+    model2y3: number
+    model3y1: number
+    model3y2: number
+    model3y3: number
+    model4y1: number
+    model4y2: number
+    model4y3: number
+    model5y1: number
+    model5y2: number
+    model5y3: number
+}
+```
+
+#### Example usage
+```typescript
+const yearlyData: Yearly = { /* yearly data object */ };
+
+response(yearlyData)
+  .then((predictionResponse: PredictionResponse) => {
+    console.log(predictionResponse);
+  })
+  .catch((error: Error) => {
+    console.error(error);
+  });
+
+```

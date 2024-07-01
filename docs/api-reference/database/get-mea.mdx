@@ -1,0 +1,72 @@
+---
+title: MEA
+description: Explanation of the query for Postgres and Oracle to retrieve the YearlyCluster object based on klaster.
+---
+
+## Function Description
+
+The function `getMea` retrieves the `YearlyCluster` object for a specified `klaster`. It accepts one parameter:
+
+- `klaster` (string): The klaster identifier.
+
+The function returns a Promise that resolves to the `YearlyCluster` object.
+
+### Implementation
+
+Here is the implementation of the `getMea` function:
+
+```typescript
+/**
+ * Retrieves the YearlyCluster object for the specified klaster.
+ * @param klaster - The klaster identifier.
+ * @returns A Promise that resolves to the YearlyCluster object.
+ */
+async getMea(klaster: string): Promise<YearlyCluster> {
+    const pg = `
+        SELECT *
+        FROM "elujoulisuseindeks"."norm_aasta_kesk_uus"
+        WHERE "klaster" = '${klaster}'
+        LIMIT 1;
+    `;
+    const oracle = `
+        SELECT *
+        FROM elujoulisuseindeks.norm_aasta_kesk_uus
+        WHERE klaster = '${klaster}'
+        FETCH FIRST 1 ROWS ONLY;
+    `;
+    const response = await dbQuery(pg, oracle);
+    const result = YearlyCluster.deserialize(response).clamp();
+
+    return result;
+}
+```
+
+### Postgres Query
+
+The Postgres query to retrieve the YearlyCluster object is as follows:
+
+```sql
+SELECT *
+FROM "elujoulisuseindeks"."norm_aasta_kesk_uus"
+WHERE "klaster" = '${klaster}'
+LIMIT 1;
+```
+The query selects all columns from the "elujoulisuseindeks"."norm_aasta_kesk_uus" table.
+It filters the results where "klaster" equals the provided klaster value.
+The query limits the results to the first row.
+
+### Oracle Query
+The Oracle query to retrieve the YearlyCluster object is as follows:
+
+```sql
+SELECT *
+FROM elujoulisuseindeks.norm_aasta_kesk_uus
+WHERE klaster = '${klaster}'
+FETCH FIRST 1 ROWS ONLY;
+```
+
+The query selects all columns from the elujoulisuseindeks.norm_aasta_kesk_uus table.
+It filters the results where klaster equals the provided klaster value.
+The query fetches only the first row of the results.
+## Summary
+The getMea function constructs SQL queries for both Postgres and Oracle to retrieve the YearlyCluster object based on the provided klaster. It then executes the appropriate query and deserializes the response into a YearlyCluster object, applying the clamp method to the result.

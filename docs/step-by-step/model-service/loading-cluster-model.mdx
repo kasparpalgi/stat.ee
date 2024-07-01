@@ -1,0 +1,53 @@
+---
+title: 'Loading a Cluster Model'
+---
+
+This documentation provides a step-by-step guide to understand and use the `loadClusterModel`, which loads a TensorFlow Layers Model based on the specified cluster and model indicator.
+
+## loadClusterModel
+
+```typescript
+/**
+ * Loads a TensorFlow Layers Model.
+ * @param cluster - The cluster name.
+ * @param model - The model indicator.
+ * @returns A promise that resolves to a TensorFlow Layers Model.
+ */
+async loadClusterModel(
+  cluster: string,
+  model: ModelIndicator
+): Promise<tf.LayersModel>
+```
+
+### Step 1: Construct Model URL
+The service constructs the URL for loading the TensorFlow Layers Model based on the provided cluster name and model indicator.
+
+```typescript
+const modelUrl = `http://localhost:${port}/static/${model}_${cluster}/model.json`;
+```
+### Step 2: Load Model
+The service uses TensorFlow.js to load the model from the constructed URL.
+
+```typescript
+const loadedModel = await tf.loadLayersModel(modelUrl);
+```
+### Step 3: Return Loaded Model
+Finally, the service returns the loaded TensorFlow Layers Model.
+
+```typescript
+return loadedModel;
+```
+#### Example Usage
+
+```typescript
+const clusterName: string = "exampleCluster";
+const modelIndicator: ModelIndicator = ModelIndicator.ExampleModel;
+
+loadModel(clusterName, modelIndicator)
+  .then((loadedModel: tf.LayersModel) => {
+    console.log(loadedModel);
+  })
+  .catch((error: Error) => {
+    console.error(error);
+  });
+```

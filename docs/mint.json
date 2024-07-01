@@ -1,0 +1,84 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Starter Kit",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:hi@mintlify.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://dashboard.mintlify.com"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/crewnew"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "quickstart",
+        "development"
+      ]
+    },
+    {
+      "group": "How it works?",
+      "pages": [
+        "step-by-step/model-service/overview",
+        "step-by-step/model-service/how-to-predict",
+        "step-by-step/model-service/loading-cluster-model",
+        "step-by-step/model-service/predicting-indicator",
+        "step-by-step/model-service/predicting-growth-indicator",
+        "step-by-step/model-service/applying-mea-sds",
+        "step-by-step/model-service/retrieve-prediction-response"
+      ]
+    },
+    {
+      "group": "API",
+      "pages": [
+        "api-reference/endpoint/eestat/1/elijoud/id",
+        "api-reference/endpoint/filtered-aastased",
+        "api-reference/endpoint/static"
+      ]
+    },
+    {
+      "group": "Database Queries",
+      "pages": [
+        "api-reference/database/get-yearly",
+        "api-reference/database/get-monthly",
+        "api-reference/database/get-sds",
+        "api-reference/database/get-mea"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "x": "https://x.com/mintlify",
+    "github": "https://github.com/mintlify",
+    "linkedin": "https://www.linkedin.com/company/mintsearch"
+  }
+}

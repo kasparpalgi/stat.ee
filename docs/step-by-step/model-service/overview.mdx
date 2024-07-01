@@ -1,0 +1,59 @@
+---
+title: 'Overview'
+---
+
+## Overview
+The prediction process involves several steps, utilizing TensorFlow models and various transformations on the yearly data. The main function predictJykood() orchestrates this process, starting from fetching the data to generating the prediction response.
+
+## Execution Flow
+
+### Predict
+```predictJykood(jykood: number, maaProtsent?: number | undefined): Promise<any>```
+> This function takes a jykood (a specific code) and an optional maaProtsent (minimum land percentage) as input.
+It retrieves the yearly data associated with the given jykood and maaProtsent.
+The yearly data is then passed to predictionResponse() to get the prediction results.
+The function combines the prediction results and the serialized yearly data into the final response object.
+
+
+### Predict Indicator
+```predictIndicator(yearly: Yearly, indicator: ModelIndicator): Promise<Prediction>```
+> This function takes the yearly data and the model indicator to predict as input.
+If the indicator is Growth, it calls predictGrowthIndicator() for the prediction.
+For other indicators, it applies mea and sds values to the yearly data by calling applyMeaAndSds().
+The transformed data is converted into a tensor and passed to loadClusterModel() to load the relevant model.
+The function makes predictions using the loaded model and returns the prediction results.
+
+### Predict Growth Indicator
+```predictGrowthIndicator(yearly: Yearly): Promise<Prediction>```
+> This function handles the prediction specifically for the Growth indicator.
+It loads the pre-trained model for the specified cluster and indicator.
+The monthly data required for prediction is fetched and transformed into a tensor.
+The tensor is reshaped and transposed to match the expected input shape for the model.
+Predictions are made using the model, and the prediction results are returned as an object with x, y, and z values.
+
+### Apply Mea and SDS
+```applyMeaAndSds(yearly: Yearly): Promise<YearlyCluster>```
+> This function takes the yearly data as input.
+It retrieves the cluster values for the company and calculates the mea and sds values for the cluster.
+The mea values are subtracted from the cluster values, and the resulting values are divided by the sds values.
+The processed data is returned.
+
+### Load Cluster Model
+```loadClusterModel(cluster: string, model: ModelIndicator): Promise<tf.LayersModel>```
+> This function takes the cluster name and model indicator as input.
+It constructs the URL for the model based on the cluster and indicator.
+The TensorFlow Layers Model is loaded from the constructed URL and returned.
+
+
+### Response
+```predictionResponse(yearly: Yearly): Promise<PredictionResponse>```
+> This function takes the yearly data as input.
+It initializes a PredictionResponse object.
+For each model indicator (Liquidity, Profitability, Efficiency, Structure, and Growth), it calls predictIndicator() to get the predicted values.
+The predicted values for each indicator are added to the PredictionResponse object.
+The function returns the populated PredictionResponse object.
+
+# Additional Details
+The ModelService class encapsulates the logic for interacting with models and performing predictions.
+Tensors are disposed of after use to free up memory.
+The prediction process involves multiple transformations and model predictions to generate the final response.

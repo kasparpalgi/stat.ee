@@ -1,0 +1,81 @@
+---
+title: 'How to Predict'
+---
+
+This documentation provides a step-by-step guide to understand and use the `predictJykood`, which predicts the data for a given jykood and optional land percentage.
+
+## predictJykood
+
+```typescript
+/**
+ * Predicts the data for a given jykood (a number representing a specific code) and optional land percentage.
+ * 
+ * @param jykood - The jykood for which to predict the data.
+ * @param landPercent - The minimum land percentage.
+ * @returns A Promise that resolves to the predicted data.
+ */
+async predictJykood(jykood: number, landPercent?: number | undefined): Promise<any>
+```
+
+### Step 1: Fetch Yearly Data
+The service fetches the yearly data for the given jykood and optional land percentage.
+
+```typescript
+const yearly = await this.repository.getJykood(jykood, landPercent);
+```
+### Step 2: Predict Response
+The service generates a prediction response using the fetched yearly data.
+
+```typescript
+let prediction = await this.predictionResponse(yearly);
+```
+### Step 3: Serialize Data
+The service serializes the prediction response and the yearly data, combining them into a single response object.
+
+```typescript
+const response = {
+  ...prediction.serialize(),
+  ...yearly.serialize()
+};
+```
+### Step 4: Return Predicted Data
+Finally, the service returns the combined response object.
+
+
+```typescript
+class PredictionResponse extends SerializableEntity {
+    model1y1: number
+    model1y2: number
+    model1y3: number
+    model2y1: number
+    model2y2: number
+    model2y3: number
+    model3y1: number
+    model3y2: number
+    model3y3: number
+    model4y1: number
+    model4y2: number
+    model4y3: number
+    model5y1: number
+    model5y2: number
+    model5y3: number
+}
+```
+```typescript
+return response;
+```
+
+#### Example Usage
+
+```typescript
+const jykood: number = 12345;
+const landPercent: number | undefined = 30;
+
+predictJykood(jykood, landPercent)
+  .then(predictedData => {
+    console.log(predictedData);
+  })
+  .catch((error: Error) => {
+    console.error(error);
+  });
+```

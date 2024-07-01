@@ -1,0 +1,84 @@
+---
+title: 'Predicting an Indicator'
+---
+
+This documentation provides a step-by-step guide to understand and use the `predictIndicator`, which represents the service for working with models.
+
+## predictIndicator
+
+```typescript
+/**
+ * Predicts an indicator based on the provided yearly data.
+ * @param yearly - The yearly data.
+ * @param indicator - The indicator to predict.
+ * @returns A Promise that resolves to the predicted values.
+ */
+async predictIndicator(
+  yearly: Yearly,
+  indicator: ModelIndicator
+): Promise<Prediction>
+```
+
+### Step 1: Indicator Check
+The service first checks if the indicator is ModelIndicator.Growth. If true, it calls the predictGrowthIndicator method.
+
+```typescript
+if (indicator === ModelIndicator.Growth) {
+  return this.predictGrowthIndicator(yearly);
+}
+```
+
+### Step 2: Data Preparation
+If the indicator is not ModelIndicator.Growth, the service applies MEA and SDS on the data.
+
+```typescript
+const data = await this.applyMeaAndSds(yearly);
+const dataArray = data.toArray();
+const tensor = await tf.tensor2d(dataArray, [1, 64]);
+```
+
+### Step 3: Model Loading
+Next, the service loads the appropriate model based on the yearly.klaster and indicator.
+
+```typescript
+const loadedModel = await this.loadModel(yearly.klaster, indicator);
+```
+### Step 4: Making Predictions
+The service then makes a prediction using the loaded model and the tensor created from the yearly data.
+
+```typescript
+const prediction = await (loadedModel.predict(tensor) as tf.Tensor);
+const dataSync = prediction.dataSync();
+```
+### Step 5: Tensor Disposal
+To free up memory, the service disposes of the tensors and the loaded model after prediction.
+
+```typescript
+prediction.dispose();
+tensor.dispose();
+loadedModel.dispose();
+```
+### Step 6: Return Predicted Values
+Finally, the service returns the predicted values in an object with properties x, y, and z.
+
+```typescript
+return {
+  x: dataSync[0],
+  y: dataSync[1],
+  z: dataSync[2],
+};
+```
+#### Example Usage
+
+```typescript
+const yearlyData: Yearly = { /* yearly data object */ };
+const indicator: ModelIndicator = ModelIndicator.Growth;
+
+predictIndicator(yearlyData, indicator)
+  .then((prediction: Prediction) => {
+    console.log(prediction);
+  })
+  .catch((error: Error) => {
+    console.error(error);
+  });
+```
