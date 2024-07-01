@@ -1,23 +1,13 @@
 # stat-ee
 
-## TODO
+## Ülesande esialgne püstitus (vana)
 
-* ~~Jaaniga kohtumine~~
-* ~~Hansuga kohtumine~~
-* ~~Ülesande püstitus lühidalt~~
-* Hans saatis mudelid meilile ja https://mail.google.com/mail/u/1/#search/marre/FMfcgzGxSbvNCHtjhVNnkttbqZhJGWQZ
-* ~~ER välja mõelda~~ Hansuga koos
-* Gitlab šeeri
-* Hans kommenteeris failis
-* Import (`SQL*Loader` vs `oracledb` ja JS script)
-* [mudelid1 valjund](https://github.com/kvartiil/mudelid1valjund) - ei ole kõige hilisemad variandid, kuid töötavad ja katsetamiseks sobivad. JSON failis on struktuur kenasti kirjas, 64 sisendit peaks olema kõigil. Mis ma sellega teen?
-
-## Ülesande püstitus
+Uus detailne doumentatsioon:
 
 ![diagram](./ülesande_püstituse_diagram.png)
 
 0. Võtta ettevõtte reg. koodi järgi `jykood` Oracle'st rida (kui see eksisteerib) selle ettevõtte viimase baasis oleva `aasta` 64 välja alates `kaibevarad` väljast. Kõikide väljade vaikimisi väärtus on `0` (kui datat pole, siis on 0).
-2. Kõrgemad otsad maha (Hans või Jaan - viita, kust ma saan iga 64 välja kohta info, et mis on max ehk siis näiteks, et `kaibevarad` 100 ja kui mõnel ettevõttel on 101 või miljard, siis mina kasutan ikka 100). Kas see 100 on näide või ongi 100 see number?
+2. Kõrgemad otsad maha.
 3. Ettevõtte sektori järgi valida 4 õiget mudelit 20st. k4_1 ... k4_4
 4. Kõigist 64 arvust lahutada vastav number `mea` [tabelist](https://docs.google.com/spreadsheets/d/1xQovBVylikPfnDzzJF7qJADa06Ya8ozLGXptgo3dVHE) sõltuvalt mudelist (punkt 3)
 5. Kõik 64 arvu jagada vastava numbriga `sds` [tabelist](https://docs.google.com/spreadsheets/d/17mh7DMQhR5eGZYDO6faO6yTC3hE_LGEs69whnb73eKA) sõltuvalt mudelist
