@@ -2,6 +2,11 @@
 
 **Note:** Due to limitations on access to Oracle and unsuccessful cloud signups, the development of this project was initially carried out using PostgreSQL. The instructions provided here have not been tested with Oracle XE on Arm MacOS as intended. Developers which are encountering issues when migrating to Oracle are advised to provide detailed error messages for troubleshooting assistance.
 
+## Documentation
+
+1. `npm i -g mintlify` - Install Mintlify (modern standard for public facing documentation)
+2. `cd docs` and `mintlify dev` - Start the documentation server: http://localhost:3000
+
 ## Setup Guide for Stat-ee
 
 This guide will walk you through the setup process for the Stat-ee project on your local environment using PostgreSQL\Oracle.
