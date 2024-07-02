@@ -1,0 +1,150 @@
+## Overview
+
+The YearlyCluster class is a serializable entity representing various financial metrics for a given year. It includes methods for performing operations such as division, subtraction, clamping values to specified limits, and converting the object to an array of values.
+
+## Class Definition
+
+```typescript
+import { SerializableEntity } from "ts-jackson";
+import { clamp, clampBetween } from "../../application";
+
+export class YearlyCluster extends SerializableEntity {
+    kaibevarad: number;
+    raha: number;
+    lyhiajalised_nouded: number;
+    lyhiajalised_finantsinvesteeri: number;
+    varud: number;
+    pohivarad: number;
+    pikaajalised_nouded: number;
+    pikaajalised_finantsinvesteeri: number;
+    kinnisvarainvesteeringud: number;
+    materiaalne_pohivara: number;
+    immateriaalne_pohivara: number;
+    varad_kokku: number;
+    lyhiajalised_kohustused: number;
+    lyhiajalised_volad: number;
+    lyhiajalised_laenud: number;
+    pikaajalised_kohustused: number;
+    pikaajalised_volad: number;
+    pikaajalised_laenud: number;
+    kohustused_kokku: number;
+    omakapital: number;
+    kohustused_omakapital_kokku: number;
+    myygitulu: number;
+    muud_aritulud: number;
+    muud_arikulud: number;
+    toojoukulud: number;
+    arikasum: number;
+    intressikulud: number;
+    aruandeaasta_kasum: number;
+    ds_kaibevarad: number;
+    ds_raha: number;
+    ds_lyhiajalised_nouded: number;
+    ds_lyhiajalised_finantsinveste: number;
+    ds_varud: number;
+    ds_pohivarad: number;
+    ds_pikaajalised_nouded: number;
+    ds_pikaajalised_finantsinveste: number;
+    ds_kinnisvarainvesteeringud: number;
+    ds_materiaalne_pohivara: number;
+    ds_immateriaalne_pohivara: number;
+    ds_varad_kokku: number;
+    ds_lyhiajalised_kohustused: number;
+    ds_lyhiajalised_volad: number;
+    ds_lyhiajalised_laenud: number;
+    ds_pikaajalised_kohustused: number;
+    ds_pikaajalised_volad: number;
+    ds_pikaajalised_laenud: number;
+    ds_kohustused_kokku: number;
+    ds_omakapital: number;
+    ds_kohustused_omakapital_kokku: number;
+    ds_myygitulu: number;
+    ds_muud_aritulud: number;
+    ds_muud_arikulud: number;
+    ds_toojoukulud: number;
+    ds_arikasum: number;
+    ds_intressikulud: number;
+    ds_aruandeaasta_kasum: number;
+    skp_jooksevhindades: number;
+    skp_nominaalkasv: number;
+    skp_pysivhindades: number;
+    skp_reaalkasv: number;
+    tarbijahinnaindeks: number;
+    keskmine_kuupalk: number;
+    palgakasv: number;
+    tooviljakuse_kasv: number;
+}
+```
+## Methods
+
+### divide
+Divides each field by the corresponding value in another YearlyCluster instance.
+
+```typescript
+public divide(cluster: YearlyCluster): YearlyCluster {
+    Object.keys(this).forEach(key => {
+        if (isNaN(this[key])) {
+            return;
+        } else if (Object.keys(cluster).includes(key) && cluster[key] !== 0) {
+            this[key] = this[key] / cluster[key];
+        }
+    });
+    return this;
+}
+```
+### substract
+Subtracts each field by the corresponding value in another YearlyCluster instance.
+
+```typescript
+public substract(cluster: YearlyCluster): YearlyCluster {
+    Object.keys(this).forEach(key => {
+        if (isNaN(this[key])) {
+            return;
+        } else if (Object.keys(cluster).includes(key) && cluster[key] !== 0) {
+            this[key] = this[key] - cluster[key];
+        }
+    });
+    return this;
+}
+```
+### clamp
+Caps each field's value based on predefined maximum values.
+
+```typescript
+public clamp(): YearlyCluster {
+    this.kaibevarad = clamp(this.kaibevarad, 250000000);
+    this.raha = clamp(this.raha, 50000000);
+    this.lyhiajalised_nouded = clamp(this.lyhiajalised_nouded, 250000000);
+    this.varud = clamp(this.varud, 75000000);
+    this.pohivarad = clamp(this.pohivarad, 250000000);
+    this.pikaajalised_nouded = clamp(this.pikaajalised_nouded, 250000000);
+    this.kinnisvarainvesteeringud = clamp(this.kinnisvarainvesteeringud, 50000000);
+    this.materiaalne_pohivara = clamp(this.materiaalne_pohivara, 250000000);
+    this.immateriaalne_pohivara = clamp(this.immateriaalne_pohivara, 25000000);
+    this.varad_kokku = clamp(this.varad_kokku, 350000000);
+    this.lyhiajalised_kohustused = clamp(this.lyhiajalised_kohustused, 100000000);
+    this.lyhiajalised_volad = clamp(this.lyhiajalised_volad, 75000000);
+    this.pikaajalised_kohustused = clamp(this.pikaajalised_kohustused, 100000000);
+    this.pikaajalised_volad = clamp(this.pikaajalised_volad, 75000000);
+    this.pikaajalised_laenud = clamp(this.pikaajalised_laenud, 150000000);
+    this.omakapital = clamp(this.omakapital, 250000000);
+    this.myygitulu = clamp(this.myygitulu, 150000000);
+    this.muud_aritulud = clamp(this.muud_aritulud, 150000000);
+    this.muud_arikulud = clamp(this.muud_arikulud, 5000000);
+    this.toojoukulud = clamp(this.toojoukulud, 15000000);
+    this.intressikulud = clamp(this.intressikulud, 7500000);
+    this.arikasum = clampBetween(this.arikasum, -125000000, 250000000);
+    this.aruandeaasta_kasum = clampBetween(this.aruandeaasta_kasum, -125000000, 125000000);
+
+    return this;
+}
+```
+
+### toArray
+Converts the object to an array of its values.
+
+```typescript
+public toArray(): number[] {
+    return Object.values(this);
+}
+```

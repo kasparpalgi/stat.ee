@@ -1,0 +1,107 @@
+---
+title: MEA
+description: Explanation of the query for Postgres and Oracle to retrieve the YearlyCluster object based on klaster.
+---
+
+<Card title="Fields for Norm Aasta Mea / Yearly Cluster Object" icon="link" href="/database/tables/norm_aasta_kesk_uus">Show the fields associated with the object.</Card>
+
+<CardGroup cols={2}>
+  <Card title="‘_vana’ (old)" icon="square-1">
+    Refers to data from the previous year.
+  </Card>
+  <Card title="‘_uus’ (new)" icon="square-2">
+    Refers to data from the current year (or the most recent year available).
+  </Card>
+</CardGroup>
+
+## Function Description
+
+The function `getMea` retrieves the `YearlyCluster` object for a specified `klaster`. It accepts one parameter:
+
+- `klaster` (string): The klaster identifier.
+
+The function returns a Promise that resolves to the `YearlyCluster` object.
+
+
+### Implementation
+
+Here is the implementation of the `getMea` function:
+
+```typescript
+/**
+ * Retrieves the YearlyCluster object for the specified klaster.
+ * @param klaster - The klaster identifier.
+ * @returns A Promise that resolves to the YearlyCluster object.
+ */
+async getMea(klaster: string): Promise<YearlyCluster> {
+    const pg = `
+    SELECT *
+        FROM (
+            SELECT *, 1 as table_priority
+            FROM "elujoulisuseindeks"."norm_aasta_kesk_uus"
+            WHERE "klaster" = '${klaster}'
+            UNION ALL
+            SELECT *, 2 as table_priority
+            FROM "elujoulisuseindeks"."norm_aasta_kesk_vana"
+            WHERE "klaster" = '${klaster}'
+        ) subquery
+        ORDER BY table_priority
+    LIMIT 1;
+    `
+    const oracle = `
+    SELECT *
+        FROM (
+            SELECT a.*, 1 as table_priority
+            FROM elujoulisuseindeks.norm_aasta_kesk_uus a
+            WHERE a.klaster = '${klaster}'
+            UNION ALL
+            SELECT b.*, 2 as table_priority
+            FROM elujoulisuseindeks.norm_aasta_kesk_vana b
+            WHERE b.klaster = '${klaster}'
+        )
+        ORDER BY table_priority
+    FETCH FIRST 1 ROW ONLY;
+    `
+
+    const response = await dbQuery(pg, oracle);
+    const result = YearlyCluster.deserialize(response).clamp();
+
+    return result;
+}
+```
+
+### Postgres Query
+```sql
+SELECT *
+    FROM (
+        SELECT *, 1 as table_priority
+        FROM "elujoulisuseindeks"."norm_aasta_kesk_uus"
+        WHERE "klaster" = '${klaster}'
+        UNION ALL
+        SELECT *, 2 as table_priority
+        FROM "elujoulisuseindeks"."norm_aasta_kesk_vana"
+        WHERE "klaster" = '${klaster}'
+    ) subquery
+    ORDER BY table_priority
+LIMIT 1;
+```
+
+### Oracle Query
+```sql
+SELECT *
+    FROM (
+        SELECT a.*, 1 as table_priority
+        FROM elujoulisuseindeks.norm_aasta_kesk_uus a
+        WHERE a.klaster = '${klaster}'
+        UNION ALL
+        SELECT b.*, 2 as table_priority
+        FROM elujoulisuseindeks.norm_aasta_kesk_vana b
+        WHERE b.klaster = '${klaster}'
+    )
+    ORDER BY table_priority
+FETCH FIRST 1 ROW ONLY;
+```
+
+## Summary
+The objective of the query is to fetch a row from the `norm_aasta_sds_uus` table based on a specific klaster value.
+If no such row exists, the query should then fetch a row from the `norm_aasta_sds_vana` table with the same klaster value.

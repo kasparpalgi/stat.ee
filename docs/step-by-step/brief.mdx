@@ -1,0 +1,97 @@
+---
+title: 'Briefing'
+---
+
+## General Information
+- **'_vana' (old)**: Refers to data from the previous year.
+- **'_uus' (new)**: Refers to data from the current year (or the most recent year available).
+
+## Steps
+
+###  1. Listen to HTTP GET Request
+   - Endpoint example: `{{server}}/eestat/1/elujoud/12345678`
+   - This request provides a company registration number.
+
+> **Note**: The endpoint is implemented using the function [predictJykood](/step-by-step/model-service/how-to-predict)
+
+### 2. Retrieve Data
+   - Using the registration code, retrieve all [64 fields](/step-by-step/yearly-cluster#class-definition) from the `elujoulisuseindeks.aastased` table for the last available year.
+   > **Note**: The data is retrieved from the `elujoulisuseindeks.aastased` table using [this query](/api-reference/database/get-yearly).
+   - If data for the current year (e.g., 2023) is not available, retrieve data for the previous year (e.g., 2022).
+   > **Note**: This is handled by the query as it retrieves the data for the [most recent year available](/api-reference/database/get-yearly#implementation).
+   - Default value for all fields is 0 if no data is available.
+   > **Note**:  As seen from the examples, unavailable data is marked as `"NA"` in the database, as a result, every query will be cleaned up using the [cleanifyJson](/step-by-step/json-clean) function which will replace the `"NA"` with `0`.
+
+
+
+
+
+### 3. Cap Values
+   - Cap the higher ends of each field according to predefined limits. 
+   - If a value exceeds its maximum, set it to the maximum. 
+   - Specific fields have negative clipping at the bottom three. 
+
+### Clamp Table
+| Field                        | Limit             |
+|------------------------------|---------------------|
+| kaibevarad                   | 250,000,000         |
+| raha                         | 50,000,000          |
+| lyhiajalised_nouded          | 250,000,000         |
+| varud                        | 75,000,000          |
+| pohivarad                    | 250,000,000         |
+| pikaajalised_nouded          | 250,000,000         |
+| kinnisvarainvesteeringud     | 50,000,000          |
+| materiaalne_pohivara         | 250,000,000         |
+| immateriaalne_pohivara       | 25,000,000          |
+| varad_kokku                  | 350,000,000         |
+| lyhiajalised_kohustused      | 100,000,000         |
+| lyhiajalised_volad           | 75,000,000          |
+| pikaajalised_kohustused      | 100,000,000         |
+| pikaajalised_volad           | 75,000,000          |
+| pikaajalised_laenud          | 150,000,000         |
+| omakapital                   | 250,000,000         |
+| myygitulu                    | 150,000,000         |
+| muud_aritulud                | 150,000,000         |
+| muud_arikulud                | 5,000,000           |
+| toojoukulud                  | 15,000,000          |
+| intressikulud                | 7,500,000           |
+| arikasum                     | -125,000,000        |
+| aruandeaasta_kasum           | -125,000,000        |
+
+
+4. **Model Selection**
+   - Select four appropriate models based on the company’s sector. 
+   - Example: Model could be `k4_1`, `k4_2`, `k4_3`, 'k4_4'.
+
+5. **Data Transformation**
+   - [Subtract the `mea` value](/step-by-step/yearly-cluster#substract) for each field based on the selected model.
+   - [Divide each field](/step-by-step/yearly-cluster#divide) value by the respective `sds` value.
+
+6. **Array Creation and Prediction**
+   - Place the transformed numbers into an array.
+   - Use the npm JS library to create a tensor and load the model:
+     ```javascript
+     tf.tensor2d([number1, number2, ..., number64], [1, 64]);
+     tf.loadLayersModel('correct_model_on_disk');
+     loadedModel.predict(data_array);
+     ```
+   - Send the prediction result back as a JSON response to the HTTP GET request.
+
+## Fifth Model Special Instructions
+- **Data Source**: Take 36 numbers from this [query](/api-reference/database/get-monthly).
+- **Fields**: From J (`kmd_M_min12`) to AS (`tor_M_min1`).
+- **Format**: Convert the data to the format `3x12`:
+  ``` 
+  [kmd_M_min12…kmd_M_min1],
+  [tsd_M_min12…. tsd_M_min1],
+  [tor_min12…tor_min1]
+  ```
+### Clamp Table
+| Field                        | Limit               |
+|------------------------------|---------------------|
+| kmd                          | +/- 2,500,000       |
+| tsd                          | +   450,000          |
+| tor                          | +   250             |
+
+
+- **Reshape Before Predict**: Ensure to reshape the data before prediction.

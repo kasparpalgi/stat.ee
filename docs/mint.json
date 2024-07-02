@@ -47,6 +47,12 @@
       ]
     },
     {
+      "group": "Project Documentation",
+      "pages": [
+        "step-by-step/brief"
+      ]
+    },
+    {
       "group": "How it works?",
       "pages": [
         "step-by-step/model-service/overview",
@@ -59,11 +65,47 @@
       ]
     },
     {
+      "group": "Database",
+      "pages": [
+       {
+        "group": "Queries",
+        "pages": [
+          "database/get-yearly",
+          "database/get-monthly",
+          "database/get-mea",
+          "database/get-sds"
+        ]
+      },
+      {
+        "group": "Tables",
+        "pages": [
+          "database/tables/aastased",
+          "database/tables/kuised",
+          "database/tables/norm_aasta_kesk_uus",
+          "database/tables/norm_aasta_kesk_vana",
+          "database/tables/norm_aasta_sds_uus",
+          "database/tables/norm_aasta_sds_vana",
+          "database/tables/norm_kuu_kesk",
+          "database/tables/norm_kuu_sds"
+        ]
+      }
+      ]
+    },
+    
+    {
+      "group": "Utilities",
+      "pages": [
+        "step-by-step/json-clean",
+        "step-by-step/yearly-cluster"
+      ]
+    },
+    {
       "group": "API",
       "pages": [
         "api-reference/endpoint/eestat/1/elijoud/id",
         "api-reference/endpoint/filtered-aastased",
-        "api-reference/endpoint/static"
+        "api-reference/endpoint/static",
+        "api-reference/endpoint/status"
       ]
     },
     {

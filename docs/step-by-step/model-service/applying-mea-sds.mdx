@@ -17,7 +17,7 @@ async applyMeaAndSds(yearly: Yearly): Promise<YearlyCluster>
 ```
 
 ### Step 1: Retrieve Cluster Values
-The service retrieves the cluster values for the company from the data.
+The service [retrieves the cluster values](https://localhost:3000/step-by-step/yearly-cluster#class-definition) for the company from the data.
 
 ```typescript
 const cluster = yearly.toCluster();
@@ -29,14 +29,16 @@ The service gets the cluster name from the data.
 const clusterName = yearly.klaster;
 ```
 ### Step 3: Subtract MEA Values
-The service retrieves the MEA values based on the cluster name and subtracts the corresponding MEA value from each retrieved field.
+The service [retrieves the MEA values](/database/get-mea) based on the cluster name and subtracts the corresponding MEA value from each retrieved field.
 
 ```typescript
 const mea = await this.repository.getMea(clusterName);
 const substractedMea = cluster.substract(mea);
 ```
+
+
 ### Step 4: Divide by SDS Values
-The service retrieves the SDS values based on the cluster name and divides each field by the corresponding SDS value.
+The service [retrieves the SDS values](/database/get-sds) based on the cluster name and divides each field by the corresponding SDS value.
 
 ```typescript
 const sds = await this.repository.getSds(clusterName);

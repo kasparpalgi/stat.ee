@@ -1,0 +1,14 @@
+---
+title: 'Resolving "NA" Values in JSON'
+---
+
+# cleanifyJson Function
+
+`cleanifyJson` is a utility function that cleans up a JSON object by replacing all instances of the string `"NA"` with the string `"0"`.
+
+This should be used when data is not available for a particular field, and the default value should be set to `0`.
+
+## Function Signature
+
+```typescript
+export function cleanifyJson(json: Record<string, any>): Record<string, any>
