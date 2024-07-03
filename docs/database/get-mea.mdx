@@ -60,7 +60,7 @@ async getMea(klaster: string): Promise<YearlyCluster> {
             WHERE b.klaster = '${klaster}'
         )
         ORDER BY table_priority
-    FETCH FIRST 1 ROW ONLY;
+    FETCH FIRST 1 ROW ONLY
     `
 
     const response = await dbQuery(pg, oracle);
@@ -99,7 +99,7 @@ SELECT *
         WHERE b.klaster = '${klaster}'
     )
     ORDER BY table_priority
-FETCH FIRST 1 ROW ONLY;
+FETCH FIRST 1 ROW ONLY
 ```
 
 ## Summary

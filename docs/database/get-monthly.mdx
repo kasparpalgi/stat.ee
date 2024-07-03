@@ -21,22 +21,22 @@ Here is the implementation of the `getMonthly` function:
 ```typescript
 /**
  * Retrieves the monthly cluster data for a given cluster.
- * @param klaster - The cluster identifier.
+ * @param kood - The company identifier identifier.
  * @returns A promise that resolves to the monthly cluster data.
  */
-async getMonthly(klaster: string): Promise<MonthlyCluster> {
+async getMonthly(kood: string): Promise<MonthlyCluster> {
     const pg = `
         SELECT *
-        FROM "elujoulisuseindeks"."kuised"
-        WHERE "klaster" = '${klaster}'
+            FROM "elujoulisuseindeks"."kuised"
+            WHERE "kood" = ${kood}
         LIMIT 1;
-    `;
+    `
     const oracle = `
         SELECT *
-        FROM elujoulisuseindeks.kuised
-        WHERE klaster = '${klaster}'
-        FETCH FIRST 1 ROWS ONLY;
-    `;
+            FROM elujoulisuseindeks.kuised
+            WHERE kood = '${kood}'
+        FETCH FIRST 1 ROWS ONLY
+    `
     const response = await dbQuery(pg, oracle);
     
     const cluster = MonthlyCluster.deserialize(response).clamp();
@@ -51,7 +51,7 @@ The Postgres query to retrieve the monthly cluster data is as follows:
 ```sql
 SELECT *
 FROM "elujoulisuseindeks"."kuised"
-WHERE "klaster" = '${klaster}'
+WHERE "kood" = '${kood}'
 LIMIT 1;
 ```
 
@@ -66,8 +66,8 @@ The Oracle query to retrieve the monthly cluster data is as follows:
 ```sql
 SELECT *
 FROM elujoulisuseindeks.kuised
-WHERE klaster = '${klaster}'
-FETCH FIRST 1 ROWS ONLY;
+WHERE kood = '${kood}'
+FETCH FIRST 1 ROWS ONLY
 ```
 The query selects all columns from the elujoulisuseindeks.kuised table.
 It filters the results where klaster equals the provided klaster value.

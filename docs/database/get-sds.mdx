@@ -60,7 +60,7 @@ async getSds(klaster: string): Promise<YearlyCluster> {
             WHERE b.klaster = '${klaster}'
         )
         ORDER BY table_priority
-    FETCH FIRST 1 ROW ONLY;
+    FETCH FIRST 1 ROW ONLY
     `
     const response = await dbQuery(pg, oracle);
     const result = YearlyCluster.deserialize(response).clamp();
@@ -98,7 +98,7 @@ SELECT *
         WHERE b.klaster = :klaster
     )
     ORDER BY table_priority
-FETCH FIRST 1 ROW ONLY;
+FETCH FIRST 1 ROW ONLY
 ```
 
 ## Summary

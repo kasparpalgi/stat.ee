@@ -28,7 +28,7 @@ export class Repository {
                 WHERE jykood = ${jykood}
                 ${maaProtsent ? `AND maa_protsent >= ${maaProtsent}` : ''}
                 ORDER BY aasta DESC
-            FETCH FIRST 1 ROWS ONLY;
+            FETCH FIRST 1 ROWS ONLY
         `
         const response = await dbQuery(pg, oracle);
         const result = Yearly.deserialize(response);
@@ -67,7 +67,7 @@ export class Repository {
                 WHERE b.klaster = '${klaster}'
             )
             ORDER BY table_priority
-        FETCH FIRST 1 ROW ONLY;
+        FETCH FIRST 1 ROW ONLY
         `
         const response = await dbQuery(pg, oracle);
         const result = YearlyCluster.deserialize(response).clamp();
@@ -107,7 +107,7 @@ export class Repository {
                 WHERE b.klaster = '${klaster}'
             )
             ORDER BY table_priority
-        FETCH FIRST 1 ROW ONLY;
+        FETCH FIRST 1 ROW ONLY
         `
 
         const response = await dbQuery(pg, oracle);
@@ -118,21 +118,21 @@ export class Repository {
 
     /**
      * Retrieves the monthly cluster data for a given cluster.
-     * @param klaster - The cluster identifier.
+     * @param kood - The company identifier identifier.
      * @returns A promise that resolves to the monthly cluster data.
      */
-    async getMonthly(klaster: string): Promise<MonthlyCluster> {
+    async getMonthly(kood: string): Promise<MonthlyCluster> {
         const pg = `
             SELECT *
                 FROM "elujoulisuseindeks"."kuised"
-                WHERE "klaster" = 'a' 
+                WHERE "kood" = ${kood}
             LIMIT 1;
         `
         const oracle = `
             SELECT *
                 FROM elujoulisuseindeks.kuised
-                WHERE klaster = '${klaster}'
-            FETCH FIRST 1 ROWS ONLY;
+                WHERE kood = '${kood}'
+            FETCH FIRST 1 ROWS ONLY
         `
         const response = await dbQuery(pg, oracle);
         
@@ -140,5 +140,6 @@ export class Repository {
         checkMissingProperties(cluster, 3);
         return cluster;
     }
+
 
 }

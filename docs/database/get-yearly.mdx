@@ -43,7 +43,7 @@ async getJykood(jykood: number, maaProtsent?: number | undefined): Promise<Yearl
         WHERE jykood = ${jykood}
         ${maaProtsent ? `AND maa_protsent >= ${maaProtsent}` : ''}
         ORDER BY aasta DESC
-        FETCH FIRST 1 ROWS ONLY;
+        FETCH FIRST 1 ROWS ONLY
     `;
     const response = await dbQuery(pg, oracle);
     const result = Yearly.deserialize(response);
@@ -78,7 +78,7 @@ FROM elujoulisuseindeks.aastased
 WHERE jykood = ${jykood}
 ${maaProtsent ? `AND maa_protsent >= ${maaProtsent}` : ''}
 ORDER BY aasta DESC
-FETCH FIRST 1 ROWS ONLY;
+FETCH FIRST 1 ROWS ONLY
 ```
 
 > The query selects all columns from the elujoulisuseindeks.aastased table.
