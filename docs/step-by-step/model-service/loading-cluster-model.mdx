@@ -4,50 +4,23 @@ title: 'Loading a Cluster Model'
 
 This documentation provides a step-by-step guide to understand and use the `loadClusterModel`, which loads a TensorFlow Layers Model based on the specified cluster and model indicator.
 
-## loadClusterModel
-
 ```typescript
-/**
- * Loads a TensorFlow Layers Model.
- * @param cluster - The cluster name.
- * @param model - The model indicator.
- * @returns A promise that resolves to a TensorFlow Layers Model.
- */
-async loadClusterModel(
-  cluster: string,
-  model: ModelIndicator
-): Promise<tf.LayersModel>
+loadClusterModel(cluster: string, model: ModelIndicator): Promise<tf.LayersModel>
 ```
 
-### Step 1: Construct Model URL
-The service constructs the URL for loading the TensorFlow Layers Model based on the provided cluster name and model indicator.
+This method is responsible for loading a TensorFlow Layers Model based on the specified cluster and model indicator.
 
-```typescript
-const modelUrl = `http://localhost:${port}/static/${model}_${cluster}/model.json`;
-```
-### Step 2: Load Model
-The service uses TensorFlow.js to load the model from the constructed URL.
+#### Parameters
 
-```typescript
-const loadedModel = await tf.loadLayersModel(modelUrl);
-```
-### Step 3: Return Loaded Model
-Finally, the service returns the loaded TensorFlow Layers Model.
+- `cluster` (`string`): The name of the cluster for which the model needs to be loaded.
+- `model` (`ModelIndicator`): An enum or type indicating the specific model to load.
 
-```typescript
-return loadedModel;
-```
-#### Example Usage
+#### Returns
 
-```typescript
-const clusterName: string = "exampleCluster";
-const modelIndicator: ModelIndicator = ModelIndicator.ExampleModel;
+- `Promise<tf.LayersModel>`: A promise that resolves to the loaded TensorFlow Layers Model.
 
-loadModel(clusterName, modelIndicator)
-  .then((loadedModel: tf.LayersModel) => {
-    console.log(loadedModel);
-  })
-  .catch((error: Error) => {
-    console.error(error);
-  });
-```
+#### Description
+
+The `loadClusterModel` method constructs a URL using the provided `cluster` and `model` parameters to locate the correct TensorFlow model stored on a local server. It then uses TensorFlow.js's `tf.loadLayersModel` function to asynchronously load the model from the constructed URL and returns a promise that resolves to this model.
+
+The URL is constructed as follows: `http://localhost:${port}/static/${model}_${cluster}/model.json`, where `${port}` should be defined elsewhere in your application to specify the port number of the local server hosting the models.

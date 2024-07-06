@@ -4,18 +4,18 @@ import { PredictionResponse } from "../domain";
 import { Prediction } from "../domain";
 import { port } from "../app";
 
-import { Yearly, Repository, YearlyCluster } from "../infrastructure";
-
-
+import { NormYearlyRepository, NormMonthlyRepository, Company, Monthly, CompanyYear, YearlyCluster, MonthlyCluster } from "../infrastructure";
 
 /**
- * Represents a service for working with models.
+ * Represents a service for working with yearly models.
  */
 export class ModelService {
-  private readonly repository: Repository;
+  private readonly yearlyRepository: NormYearlyRepository;
+  private readonly monthlyRepository: NormMonthlyRepository;
 
   constructor() {
-    this.repository = new Repository();
+    this.yearlyRepository = new NormYearlyRepository();
+    this.monthlyRepository = new NormMonthlyRepository();
   }
 
   /**
@@ -24,7 +24,7 @@ export class ModelService {
    * @param model - The model indicator.
    * @returns A promise that resolves to a TensorFlow Layers Model.
    */
-  async  loadClusterModel(
+  async loadClusterModel(
     cluster: string,
     model: ModelIndicator
   ): Promise<tf.LayersModel> {
@@ -39,98 +39,49 @@ export class ModelService {
   }
 
 
-  /**
-   * Applies the `mea` and `sds` values to the yearly data.
-   * 
-   * @param yearly - The yearly data to be processed.
-   * @returns A Promise that resolves to the processed yearly data.
-   */
-  async applyMeaAndSds(yearly: Yearly): Promise<YearlyCluster> {
-    // Retrieves the cluster values for the company.
-    const cluster = yearly.toCluster().clamp();
-
-    const clusterName = yearly.klaster;
+ 
+  async resolveYearly(companyYear: CompanyYear): Promise<YearlyCluster>{
+    // Clamp the company yearly predictable values
+    const year = companyYear.year.clamp();
+    // Get the MEA values for the company klaster
+    const mea = await this.yearlyRepository.getMea(companyYear.company.klaster, companyYear.normSuffix);
     // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
-    const mea = await this.repository.getMea(clusterName);
-    const substractedMea = cluster.substract(mea);
-
+    const meaSubstracted = year.substract(mea);
+    // Get the SDS values for the company klaster
+    const sds = await this.yearlyRepository.getSds(companyYear.company.klaster, companyYear.normSuffix);
     // Divides each field by the corresponding `sds` value based on the cluster.
-    const sds = await this.repository.getSds(clusterName);
-    const dividedData = substractedMea.divide(sds);
-
-    return dividedData;
+    const sdsDivided = meaSubstracted.divide(sds);
+    return sdsDivided;
   }
 
-  /**
-   * Predicts the data for a given jykood (a number representing a specific code) and optional land percentage.
-   * 
-   * @param jykood - The jykood for which to predict the data.
-   * @param maaProtsent - The minimum land percentage.
-   * @returns A Promise that resolves to the predicted data.
-   */
-  async predictJykood(jykood: number, maaProtsent?: number | undefined): Promise<any>{
-    const yearly = await this.repository.getJykood(jykood, maaProtsent);
-    let prediction = await this.predictionResponse(yearly);
-    // For 200 OK responses, the body should directly include the actual data as defined by Palgastatistka.
-    const response = {
-      ...prediction.serialize(),
-      ...yearly.serialize()
-    };
-    return response;
+  
+  async resolveMonthly(monthly: Monthly): Promise<MonthlyCluster> {
+    // Converts the monthly data to a cluster and clamps the values.
+    const cluster = monthly.toCluster().clamp();
+    // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
+    const mea = await this.monthlyRepository.getMea(monthly.klaster);
+    const meaSubstracted = cluster.substract(mea);
+    // Divides each field by the corresponding `sds` value based on the cluster.
+    const sds = await this.monthlyRepository.getSds(monthly.klaster);
+    const sdsDivided = meaSubstracted.divide(sds);
+
+    return sdsDivided;
   }
 
-
-  /**
-   * Retrieves the prediction response for the given yearly data.
-   * @param yearly - The yearly data.
-   * @returns A promise that resolves to the prediction response.
-   */
-  async predictionResponse(yearly: Yearly): Promise<PredictionResponse> {
-    const response = new PredictionResponse();
-
-    const liquidity = await this.predictIndicator(yearly, ModelIndicator.Liquidity);
-    response.model1y1 = liquidity.x;
-    response.model1y2 = liquidity.y;
-    response.model1y3 = liquidity.z;
-    const profitability = await this.predictIndicator(yearly, ModelIndicator.Profitability);
-    response.model2y1 = profitability.x;
-    response.model2y2 = profitability.y;
-    response.model2y3 = profitability.z;
-    const efficiency = await this.predictIndicator(yearly, ModelIndicator.Efficiency);
-    response.model3y1 = efficiency.x;
-    response.model3y2 = efficiency.y;
-    response.model3y3 = efficiency.z;
-    const structure = await this.predictIndicator(yearly, ModelIndicator.Structure);
-    response.model4y1 = structure.x;
-    response.model4y2 = structure.y;
-    response.model4y3 = structure.z;
-    const growth = await this.predictIndicator(yearly, ModelIndicator.Growth);
-    response.model5y1 = growth.x;
-    response.model5y2 = growth.y;
-    response.model5y3 = growth.z;
-
-    return response;
-  }
-
-
-  /**
-   * Predicts the growth indicator for a given yearly data.
-   * @param yearly - The yearly data for prediction.
-   * @returns A Promise that resolves to the prediction results as an object with x, y, and z values.
-   */
-  async  predictGrowthIndicator(yearly: Yearly): Promise<Prediction> {
+  async predictMonthlyGrowth(company: Company): Promise<Prediction> {
     // Load the pre-trained model layer for the specified cluster and indicator.
-    const layer = await this.loadClusterModel(yearly.klaster, ModelIndicator.Growth);
-    // Fetch the growth data required for prediction.
-    const monthly = await this.repository.getMonthly(yearly.klaster);
-    const monthlyArray = monthly.asArray();
+    const layer = await this.loadClusterModel(company.klaster, ModelIndicator.Growth);
+    const monthly = await this.monthlyRepository.getMonthly(company.jykood);
+    // Fetch the required data for prediction.
+    const resolvedMonthly = await this.resolveMonthly(monthly);
     // Create a tensor from the flattened array.
-    const x = tf.tensor(monthlyArray, [36]);
+    const x = tf.tensor(resolvedMonthly.asArray(), [36]);
     // Reshape the tensor to the required shape [1, 12, 3].
     const reshapedX = x.reshape([1, 3, 12]);
     // Transpose the tensor to match the expected shape [null, 12, 3].
     const transposedX = reshapedX.transpose([0, 2, 1]);
     // Make a prediction using the model layer and the transposed tensor.
+    // This has to be awaited
     const prediction = await layer.predict(transposedX);
     // Synchronize the prediction data to a typed array.
     const dataSync = (prediction as tf.Tensor).dataSync();
@@ -140,35 +91,26 @@ export class ModelService {
     transposedX.dispose()
     tf.disposeVariables();
     (prediction as tf.Tensor).dispose();
-    // Print the memory usage to the console.
-    console.log('debug', tf.memory());
     // Return the prediction results as an object with x, y, and z values.
     return {
-      x: dataSync[0],
-      y: dataSync[1],
-      z: dataSync[2],
+      low: dataSync[0],
+      medium: dataSync[1],
+      high: dataSync[2],
     };
   }
 
-  /**
-   * Predicts an indicator based on the provided yearly data.
-   * @param yearly - The yearly data.
-   * @param indicator - The indicator to predict.
-   * @returns A Promise that resolves to the predicted values.
-   */
+  
   async predictIndicator(
-    yearly: Yearly,
+    company: Company,
+    year: YearlyCluster,
     indicator: ModelIndicator
   ): Promise<Prediction> {
     if (indicator === ModelIndicator.Growth) {
-      return this.predictGrowthIndicator(yearly);
-    
+      return this.predictMonthlyGrowth(company);
     }
-
-    const data = await this.applyMeaAndSds(yearly);
-    const dataArray = data.toArray();
-    const tensor = await tf.tensor2d(dataArray, [1, 64]);
-    const loadedModel = await this.loadClusterModel(yearly.klaster, indicator);
+    const data = year.toArray();
+    const tensor = await tf.tensor2d(data, [1, 64]);
+    const loadedModel = await this.loadClusterModel(company.klaster, indicator);
 
     // This has to be awaited
     const prediction = await (loadedModel.predict(tensor) as tf.Tensor);
@@ -180,11 +122,39 @@ export class ModelService {
     loadedModel.dispose();
 
     return {
-      x: dataSync[0],
-      y: dataSync[1],
-      z: dataSync[2],
+      low: dataSync[0],
+      medium: dataSync[1],
+      high: dataSync[2],
     };
   }
+
+  async predictionResponse(company: Company,year: YearlyCluster): Promise<PredictionResponse> {
+    const response = new PredictionResponse();
+    
+    const liquidity = await this.predictIndicator(company,year, ModelIndicator.Liquidity);
+    response.model1y1 = liquidity.low;
+    response.model1y2 = liquidity.medium;
+    response.model1y3 = liquidity.high;
+    const profitability = await this.predictIndicator(company, year, ModelIndicator.Profitability);
+    response.model2y1 = profitability.low;
+    response.model2y2 = profitability.medium;
+    response.model2y3 = profitability.high;
+    const efficiency = await this.predictIndicator(company, year, ModelIndicator.Efficiency);
+    response.model3y1 = efficiency.low;
+    response.model3y2 = efficiency.medium;
+    response.model3y3 = efficiency.high;
+    const structure = await this.predictIndicator(company, year, ModelIndicator.Structure);
+    response.model4y1 = structure.low;
+    response.model4y2 = structure.medium;
+    response.model4y3 = structure.high;
+    const growth = await this.predictIndicator(company, year, ModelIndicator.Growth);
+    response.model5y1 = growth.low;
+    response.model5y2 = growth.medium;
+    response.model5y3 = growth.high;
+
+    return response;
+  }
+
 }
 
 

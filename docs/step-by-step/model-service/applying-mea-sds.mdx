@@ -1,78 +1,52 @@
 ---
-title: 'Applying MEA and SDS'
+title: 'MEA and SDS Processing'
 ---
-
-This documentation provides a step-by-step guide to understand and use the `applyMeaAndSds` service, which applies the MEA and SDS values to the data.
-
-## applyMeaAndSds
-
 ```typescript
-/**
- * Applies the `mea` and `sds` values to the data.
- * 
- * @param yearly - The data to be processed.
- * @returns A Promise that resolves to the processed data.
- */
-async applyMeaAndSds(yearly: Yearly): Promise<YearlyCluster>
+resolveMonthly(id: string): Promise<number[]>
+resolveYearly(id: string): Promise<number[]>
 ```
 
-### Step 1: Retrieve Cluster Values
-The service [retrieves the cluster values](https://localhost:3000/step-by-step/yearly-cluster#class-definition) for the company from the data.
+The `resolveMonthly` and `resolveYearly` functions are asynchronous methods within the `ModelService` class, designed to process company data by applying specific statistical adjustments based on mean (`mea`) and standard deviation (`sds`) values. They follow the same workflow but process different data: `resolveMonthly` handles monthly data using `monthlyRepository`, while `resolveYearly` handles yearly data using `yearlyRepository`. Here's a simplified breakdown of how they work:
 
-```typescript
-const cluster = yearly.toCluster();
-```
-### Step 2: Get Cluster Name
-The service gets the cluster name from the data.
+## Parameters
 
-```typescript
-const clusterName = yearly.klaster;
-```
-### Step 3: Subtract MEA Values
-The service [retrieves the MEA values](/database/get-mea) based on the cluster name and subtracts the corresponding MEA value from each retrieved field.
+- `id`: A string representing the unique identifier of the company whose data is to be processed.
 
-```typescript
-const mea = await this.repository.getMea(clusterName);
-const substractedMea = cluster.substract(mea);
-```
+## Process Flow
 
+### 1. Retrieve Company Data
 
-### Step 4: Divide by SDS Values
-The service [retrieves the SDS values](/database/get-sds) based on the cluster name and divides each field by the corresponding SDS value.
+- Fetch the company's data using the `id`.
+  - `resolveMonthly`: Uses `monthlyRepository.getCompany(id)`.
+  - `resolveYearly`: Uses `yearlyRepository.getCompany(id)`.
 
-```typescript
-const sds = await this.repository.getSds(clusterName);
-const dividedData = substractedMea.divide(sds);
-```
+### 2. Convert and Clamp Data
 
-### Step 5: Return Processed Data
-Finally, the service returns the processed data.
+- Convert the retrieved data into a cluster format with `toCluster()`.
+- Ensure all values are within acceptable bounds using `clamp()`.
 
-```typescript
-return dividedData;
-```
+### 3. Subtract `mea` Values
 
-### Example Usage
+- Fetch the `mea` values specific to the company's cluster.
+  - `resolveMonthly`: Uses `monthlyRepository.getMea(data.klaster)`.
+  - `resolveYearly`: Uses `yearlyRepository.getMea(data.klaster)`.
+- Subtract the mean from each data point with `substract(mea)`.
 
-```javascript
-const yearlyData = { /* data object */ };
+### 4. Divide by `sds` Values
 
-applyMeaAndSds(yearlyData)
-  .then(processedData => {
-    console.log(processedData);
-  })
-  .catch(error => {
-    console.error(error);
-  });
-```typescript
-const yearlyData: Yearly = { /* data object */ };
+- Retrieve the `sds` values for the company's cluster.
+  - `resolveMonthly`: Uses `monthlyRepository.getSds(data.klaster)`.
+  - `resolveYearly`: Uses `yearlyRepository.getSds(data.klaster)`.
+- Divide each data point by its corresponding standard deviation with `divide(sds)`.
 
-applyMeaAndSds(yearlyData)
-  .then((processedData: YearlyCluster) => {
-    console.log(processedData);
-  })
-  .catch((error: Error) => {
-    console.error(error);
-  });
-</TabItem>
-</Tabs>
+### 5. Return Processed Data
+
+- Convert the processed data back into an array format using `asArray()` and return it.
+
+## Returns
+
+- Both functions return a promise that resolves to an array of numbers, representing the processed data for the specified company.
+
+## Summary
+
+The `resolveMonthly` and `resolveYearly` functions are crucial parts of the data preprocessing pipeline. They normalize and standardize company data by subtracting the mean and dividing by the standard deviation, ensuring the data is suitable for accurate predictions and further analysis.

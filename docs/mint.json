@@ -68,12 +68,26 @@
       "group": "Database",
       "pages": [
        {
-        "group": "Queries",
+        "group": "Repository",
         "pages": [
-          "database/get-yearly",
-          "database/get-monthly",
-          "database/get-mea",
-          "database/get-sds"
+          {
+            "group": "Yearly Repository",
+            "pages": [
+              "database/repository/yearly/get-company",
+              "database/repository/yearly/get-mea",
+              "database/repository/yearly/get-sds",
+              "database/repository/yearly/yearly-cluster"
+            ]
+          },
+          {
+            "group": "Monthly Repository",
+            "pages": [
+              "database/repository/monthly/get-company",
+              "database/repository/monthly/get-mea",
+              "database/repository/monthly/get-sds",
+              "database/repository/monthly/monthly-cluster"
+            ]
+          }
         ]
       },
       {
@@ -95,8 +109,7 @@
     {
       "group": "Utilities",
       "pages": [
-        "step-by-step/json-clean",
-        "step-by-step/yearly-cluster"
+        "step-by-step/json-clean"
       ]
     },
     {

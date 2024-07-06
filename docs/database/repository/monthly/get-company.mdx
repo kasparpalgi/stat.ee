@@ -1,0 +1,70 @@
+---
+title: Company Data
+description: Explanation of the query for Postgres and Oracle to retrieve the monthly cluster data based on klaster.
+---
+
+<Card title="Fields for Aastased / Monthly Object" icon="link" href="/database/tables/kuised">Show the fields associated with the object.</Card>
+
+
+## Function Description
+
+The function `getCompany` retrieves the monthly data for a specified `id`. It accepts one parameter:
+
+- `id` (string): The company identifier.
+
+The function returns a Promise that resolves to the `Monthly` object.
+
+### Implementation
+
+Here is the implementation of the `getCompany` function:
+
+```typescript
+/**
+ * Retrieves the yearly data for a given kood.
+ * @param id - The company identifier identifier.
+ * @returns A promise that resolves to the monthly cluster data.
+ */
+async getCompany(id: string): Promise<Monthly> {
+    const pg = `
+        SELECT *
+            FROM "elujoulisuseindeks"."kuised"
+            WHERE "kood" = "${id}"
+        LIMIT 1;
+    `
+    const oracle = `
+        SELECT *
+            FROM elujoulisuseindeks.kuised
+            WHERE kood = '${id}'
+        FETCH FIRST 1 ROWS ONLY
+    `
+    const response = await dbQuery(pg, oracle);
+    const res = Monthly.deserialize(response);
+    checkMissingProperties(res, 3);
+    return res;
+}
+```
+### Postgres Query
+
+The Postgres query to retrieve the monthly cluster data is as follows:
+
+```sql
+SELECT *
+    FROM "elujoulisuseindeks"."kuised"
+    WHERE "kood" = id
+LIMIT 1;
+```
+### Oracle Query
+
+The Oracle query to retrieve the monthly cluster data is as follows:
+
+```sql
+SELECT *
+    FROM elujoulisuseindeks.kuised
+    WHERE kood = :id
+FETCH FIRST 1 ROWS ONLY
+```
+
+## Summary
+The getMonthly function constructs SQL queries for both Postgres and Oracle to retrieve the monthly cluster data based on the provided id.
+It then executes the appropriate query and deserializes the response into a object,
+applying the clamp method and checking for missing properties.

@@ -1,0 +1,134 @@
+## Overview
+
+The YearlyCluster class is a serializable entity representing various metrics for a given year in. It includes methods for performing operations such as division, subtraction, clamping values to specified limits, and converting the object to an array of values.
+
+## Class Definition
+
+```typescript
+import { SerializableEntity } from "ts-jackson";
+import { clamp, clampBetween } from "../../application";
+
+export class YearlyCluster extends SerializableEntity {
+    /**
+     * The cluster name.
+     * @type {string}
+     */
+    klaster: string;
+
+    /**
+     * Monthly metrics for KMD (12 months ago to 1 month ago).
+     * @type {number}
+     */
+    kmd_m_min12: number;
+    kmd_m_min11: number;
+    kmd_m_min10: number;
+    kmd_m_min9: number;
+    kmd_m_min8: number;
+    kmd_m_min7: number;
+    kmd_m_min6: number;
+    kmd_m_min5: number;
+    kmd_m_min4: number;
+    kmd_m_min3: number;
+    kmd_m_min2: number;
+    kmd_m_min1: number;
+
+    /**
+     * Monthly metrics for TSD (12 months ago to 1 month ago).
+     * @type {number}
+     */
+    tsd_m_min12: number;
+    tsd_m_min11: number;
+    tsd_m_min10: number;
+    tsd_m_min9: number;
+    tsd_m_min8: number;
+    tsd_m_min7: number;
+    tsd_m_min6: number;
+    tsd_m_min5: number;
+    tsd_m_min4: number;
+    tsd_m_min3: number;
+    tsd_m_min2: number;
+    tsd_m_min1: number;
+
+    /**
+     * Monthly metrics for TOR (12 months ago to 1 month ago).
+     * @type {number}
+     */
+    tor_m_min12: number;
+    tor_m_min11: number;
+    tor_m_min10: number;
+    tor_m_min9: number;
+    tor_m_min8: number;
+    tor_m_min7: number;
+    tor_m_min6: number;
+    tor_m_min5: number;
+    tor_m_min4: number;
+    tor_m_min3: number;
+    tor_m_min2: number;
+    tor_m_min1: number;
+}
+```
+## Methods
+
+### asArray
+Converts the monthly metrics into a single array
+
+```typescript
+public asArray(): number[] {
+    const array3D = this.toArray3D();
+    return [
+        ...array3D.x,
+        ...array3D.y,
+        ...array3D.z
+    ];
+}
+```
+
+
+### toArray3D
+Converts the monthly metrics into a 3D array
+
+```typescript
+private toArray3D(): { x: number[], y: number[], z: number[] } {
+    return {
+        x: [
+            this.kmd_m_min12,
+            ...
+            this.kmd_m_min1
+        ],
+        y: [
+            this.tsd_m_min12,
+            ...
+            this.tsd_m_min1
+        ],
+        z: [
+            this.tor_m_min12,
+            ...
+            this.tor_m_min1
+        ]
+    };
+}
+```
+
+### clamp
+Clamps the values of each field based on predefined limits
+
+
+```typescript
+public clamp(): MonthlyCluster {
+    this.kmd_m_min1 = clampBetween(this.kmd_m_min1, -2500000, 2500000);
+    ...
+    this.tsd_m_min1 = clamp(this.tsd_m_min1, 450000);
+    ...
+    this.tor_m_min1 = clamp(this.tor_m_min1, 250);
+    ...
+    return this;
+}
+```
+
+#### Clamping Limits
+
+| Field Prefix  | Minimum Value | Maximum Value |
+|---------------|---------------|---------------|
+| `kmd_m_min`   | -2500000      | 2500000       |
+| `tsd_m_min`   | 450000        | No Limit      |
+| `tor_m_min`   | 250           | No Limit      |

@@ -2,11 +2,6 @@
 
 **Note:** Due to limitations on access to Oracle and unsuccessful cloud signups, the development of this project was initially carried out using PostgreSQL. The instructions provided here have not been tested with Oracle XE on Arm MacOS as intended. Developers which are encountering issues when migrating to Oracle are advised to provide detailed error messages for troubleshooting assistance.
 
-## Documentation
-
-1. `npm i -g mintlify` - Install Mintlify (modern standard for public facing documentation)
-2. `cd docs` and `mintlify dev` - Start the documentation server: http://localhost:3000
-
 ## Setup Guide for Stat-ee
 
 This guide will walk you through the setup process for the Stat-ee project on your local environment using PostgreSQL\Oracle.
@@ -69,6 +64,32 @@ This command will build the TypeScript files and then start the application.
 
 Once the application is running, access it by navigating to http://localhost:3000 in your web browser (or the port you configured).
 
+### Open the docs
+
+1. Install Mintlify:
+
+Open your terminal and run:
+
+```bash
+npm i -g mintlify
+```
+
+a. Navigate to the docs folder:
+
+  ```bash
+  cd stat-ee/docs
+  ```
+b. Start the development server:
+
+  ```bash
+  mintlify dev
+  ```
+This opens the docs in your web browser, usually at http://localhost:4111/.
+
+Explore the documentation!
+
+Tip: Stop the server (if needed) with Ctrl+C (or Command+C on macOS) in your terminal.
+
 #### Routes
 ```http
 GET /eestat/1/elujoud/:id - Get a specific elujoud by ID
@@ -95,9 +116,3 @@ For each model:
   - `modelY1`: Represents the X dimension of the prediction.
   - `modelY2`: Represents the Y dimension of the prediction.
   - `modelY3`: Represents the Z dimension of the prediction.
-
-### Testing SQL queries
-
-[All currently 8 SQL queries can be found and tested here](src/infrastructure/repository.ts)
-
-![SQL queries](doc/sql_queries.png)

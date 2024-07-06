@@ -2,83 +2,60 @@
 title: 'Predicting an Indicator'
 ---
 
-This documentation provides a step-by-step guide to understand and use the `predictIndicator`, which represents the service for working with models.
-
-## predictIndicator
-
 ```typescript
-/**
- * Predicts an indicator based on the provided yearly data.
- * @param yearly - The yearly data.
- * @param indicator - The indicator to predict.
- * @returns A Promise that resolves to the predicted values.
- */
-async predictIndicator(
-  yearly: Yearly,
-  indicator: ModelIndicator
-): Promise<Prediction>
+predictIndicator(id: string, klaster: string, indicator: ModelIndicator): Promise<Prediction>
 ```
 
-### Step 1: Indicator Check
-The service first checks if the indicator is ModelIndicator.Growth. If true, it calls the predictGrowthIndicator method.
+Predicts an indicator based on the provided data.
 
-```typescript
-if (indicator === ModelIndicator.Growth) {
-  return this.predictGrowthIndicator(yearly);
-}
-```
+#### Parameters
 
-### Step 2: Data Preparation
-If the indicator is not ModelIndicator.Growth, the service applies MEA and SDS on the data.
+- `id` (`string`): The company identifier.
+- `klaster` (`string`): The klaster to use.
+- `indicator` (`ModelIndicator`): The indicator to predict.
 
-```typescript
-const data = await this.applyMeaAndSds(yearly);
-const dataArray = data.toArray();
-const tensor = await tf.tensor2d(dataArray, [1, 64]);
-```
+#### Returns
 
-### Step 3: Model Loading
-Next, the service loads the appropriate model based on the yearly.klaster and indicator.
+A `Promise` that resolves to the predicted values (`Prediction`).
 
-```typescript
-const loadedModel = await this.loadModel(yearly.klaster, indicator);
-```
-### Step 4: Making Predictions
-The service then makes a prediction using the loaded model and the tensor created from the yearly data.
+### `predictionResponse(id: string, klaster: string): Promise<PredictionResponse>`
 
-```typescript
-const prediction = await (loadedModel.predict(tensor) as tf.Tensor);
-const dataSync = prediction.dataSync();
-```
-### Step 5: Tensor Disposal
-To free up memory, the service disposes of the tensors and the loaded model after prediction.
+Retrieves the prediction response for the given company data and its klaster.
 
-```typescript
-prediction.dispose();
-tensor.dispose();
-loadedModel.dispose();
-```
-### Step 6: Return Predicted Values
-Finally, the service returns the predicted values in an object with properties x, y, and z.
+#### Parameters
 
-```typescript
-return {
-  x: dataSync[0],
-  y: dataSync[1],
-  z: dataSync[2],
-};
-```
-#### Example Usage
+- `id` (`string`): The company identifier.
+- `klaster` (`string`): The klaster to use.
 
-```typescript
-const yearlyData: Yearly = { /* yearly data object */ };
-const indicator: ModelIndicator = ModelIndicator.Growth;
+#### Returns
 
-predictIndicator(yearlyData, indicator)
-  .then((prediction: Prediction) => {
-    console.log(prediction);
-  })
-  .catch((error: Error) => {
-    console.error(error);
-  });
-```
+A `Promise` that resolves to the prediction response (`PredictionResponse`).
+
+#### Description
+
+- **Initialize Prediction Response**: Create a new `PredictionResponse` object to store the prediction results.
+- **Predict Financial Indicators**: For each financial indicator (Liquidity, Profitability, Efficiency, Structure, Growth):
+  - Call `predictIndicator` with the company's `id`, `klaster`, and the specific indicator.
+  - Receive a prediction object containing low, medium, and high values for the indicator.
+  - Assign these values to the corresponding fields in the `PredictionResponse` object.
+- **Return Prediction Response**: Return the populated `PredictionResponse` object.
+
+## Types
+
+### `ModelIndicator`
+
+An enumeration of the different types of indicators that can be predicted.
+
+### `Prediction`
+
+An object containing the low, medium, and high predictions for an indicator.
+
+### `PredictionResponse`
+
+An object containing the predictions for multiple indicators, structured as follows:
+
+- `model1y1`, `model1y2`, `model1y3`: Predictions for liquidity.
+- `model2y1`, `model2y2`, `model2y3`: Predictions for profitability.
+- `model3y1`, `model3y2`, `model3y3`: Predictions for efficiency.
+- `model4y1`, `model4y2`, `model4y3`: Predictions for structure.
+- `model5y1`, `model5y2`, `model5y3`: Predictions for growth.

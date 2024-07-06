@@ -1,9 +1,27 @@
 import { clamp, clampBetween } from "../../application";
 import { JsonProperty, SerializableEntity } from "ts-jackson";
+/**
+ * @module MonthlyCluster
+ */
 
-export  class MonthlyCluster extends SerializableEntity {
+/**
+ * Class representing a Monthly Cluster with various monthly metrics.
+ * 
+ * @class
+ * @extends {SerializableEntity}
+ */
+export class MonthlyCluster extends SerializableEntity {
+    /**
+     * The cluster name.
+     * @type {string}
+     */
     @JsonProperty()
     klaster: string;
+
+    /**
+     * Monthly metrics for KMD (12 months ago to 1 month ago).
+     * @type {number}
+     */
     @JsonProperty()
     kmd_m_min12: number;
     @JsonProperty()
@@ -28,6 +46,11 @@ export  class MonthlyCluster extends SerializableEntity {
     kmd_m_min2: number;
     @JsonProperty()
     kmd_m_min1: number;
+
+    /**
+     * Monthly metrics for TSD (12 months ago to 1 month ago).
+     * @type {number}
+     */
     @JsonProperty()
     tsd_m_min12: number;
     @JsonProperty()
@@ -52,6 +75,11 @@ export  class MonthlyCluster extends SerializableEntity {
     tsd_m_min2: number;
     @JsonProperty()
     tsd_m_min1: number;
+
+    /**
+     * Monthly metrics for TOR (12 months ago to 1 month ago).
+     * @type {number}
+     */
     @JsonProperty()
     tor_m_min12: number;
     @JsonProperty()
@@ -77,18 +105,25 @@ export  class MonthlyCluster extends SerializableEntity {
     @JsonProperty()
     tor_m_min1: number;
 
+    /**
+     * Converts the monthly metrics into a single array.
+     * @returns {number[]} An array containing all the monthly metrics.
+     */
     public asArray(): number[] {
         const array3D = this.toArray3D();
         return [
             ...array3D.x,
             ...array3D.y,
             ...array3D.z
-        ]
+        ];
     }
 
-    /// Regarding the naming of the features, the numbers should go in reverse order,
-    /// not as kmd_m_1...12 but as kmd_m12...kmd_m1.
-    //  The "m" stands for minus. So, "kmd_m12" means "kmd" from 12 months ago.
+    /**
+     * Converts the monthly metrics into a 3D array.
+     * 
+     * @private
+     * @returns {{ x: number[], y: number[], z: number[] }} An object containing three arrays representing KMD, TSD, and TOR metrics.
+     */
     private toArray3D(): { x: number[], y: number[], z: number[] } {
         return {
             x: [
@@ -133,10 +168,14 @@ export  class MonthlyCluster extends SerializableEntity {
                 this.tor_m_min2,
                 this.tor_m_min1
             ]
-        }
+        };
     }
 
-    // Caps each retrieved value based on a separate table defining maximum values for each field.
+    /**
+     * Clamps the values of each field based on predefined limits.
+     * 
+     * @returns {MonthlyCluster} The instance with clamped values.
+     */
     public clamp(): MonthlyCluster {
         this.kmd_m_min1 = clampBetween(this.kmd_m_min1, -2500000, 2500000);
         this.kmd_m_min2 = clampBetween(this.kmd_m_min2, -2500000, 2500000);
@@ -177,6 +216,33 @@ export  class MonthlyCluster extends SerializableEntity {
         this.tor_m_min11 = clamp(this.tor_m_min11, 250);
         this.tor_m_min12 = clamp(this.tor_m_min12, 250);
 
+        return this;
+    }
+
+
+    // Divides each field by the corresponding `sds` value based on the cluster.
+    public divide(cluster: MonthlyCluster): MonthlyCluster {
+        Object.keys(this).forEach(key => {
+            // if the value is not a number, skip it
+            if (isNaN(this[key])) {
+                return;
+            } else if (Object.keys(cluster).includes(key) && cluster[key] !== 0) {
+                this[key] = this[key] / cluster[key]
+            }
+
+        });
+        return this;
+    }
+
+    public substract(cluster: MonthlyCluster): MonthlyCluster {
+        Object.keys(this).forEach(key => {
+            // if the value is not a number, skip it
+            if (isNaN(this[key])) {
+                return;
+            } else if (Object.keys(cluster).includes(key) && cluster[key] !== 0) {
+                this[key] = this[key] - cluster[key]
+            }
+        });
         return this;
     }
 }

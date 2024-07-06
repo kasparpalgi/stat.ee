@@ -1,0 +1,65 @@
+---
+title: MEA
+description: Explanation of the query for Postgres and Oracle to retrieve the MonthlyCluster object based on klaster.
+---
+
+<Card title="Fields for Norm Kuu Kesk / Monthly Cluster Object" icon="link" href="/database/tables/norm_kuu_kesk">Show the fields associated with the object.</Card>
+
+## Function Description
+
+The function `getMea` retrieves the `MonthlyCluster` object for a specified `klaster`. It accepts one parameter:
+
+- `klaster` (string): The klaster identifier.
+
+The function returns a Promise that resolves to the `MonthlyCluster` object.
+
+
+### Implementation
+
+Here is the implementation of the `getMea` function:
+
+```typescript
+ /**
+ * Retrieves the monthly MEA for the specified klaster.
+ * @param klaster - The klaster identifier.
+ * @returns A Promise that resolves to the object.
+ */
+async getMea(klaster: string): Promise<MonthlyCluster> {
+    const pg = `
+        SELECT *
+            FROM "elujoulisuseindeks"."norm_kuu_kesk"
+            WHERE "klaster" = ${klaster}
+        LIMIT 1;
+    `
+    const oracle = `
+        SELECT *
+            FROM elujoulisuseindeks.norm_kuu_kesk
+            WHERE klaster = '${klaster}'
+        FETCH FIRST 1 ROWS ONLY
+    `
+
+    const response = await dbQuery(pg, oracle);
+    const result = MonthlyCluster.deserialize(response).clamp();
+
+    return result;
+}
+```
+
+### Postgres Query
+```sql
+SELECT *
+    FROM "elujoulisuseindeks"."norm_kuu_kesk"
+    WHERE "klaster" = klaster
+LIMIT 1;
+```
+
+### Oracle Query
+```sql
+SELECT *
+    FROM elujoulisuseindeks.norm_kuu_kesk
+    WHERE klaster = :klaster
+FETCH FIRST 1 ROWS ONLY
+```
+
+## Summary
+The objective of the query is to fetch a row from the `norm_kuu_kesk` table based on a specific klaster value.
