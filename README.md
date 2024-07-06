@@ -33,7 +33,7 @@ cp .env.example .env
 ```
 Edit the .env file with your preferred text editor and update the values accordingly.
 
-### 3. Docker Setup
+### 3. Docker Setup (live server deployment)
 
 Build and start the Docker containers:
 
