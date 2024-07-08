@@ -4,14 +4,18 @@ require('dotenv').config();
 
 let { ORACLE_USER, ORACLE_PASSWORD, ORACLE_CONNECT_STRING } = process.env;
 
+function cleanifyJson(json: Record<string, any>): Record<string, any> {
+    return JSON.parse(JSON.stringify(json).replace(/"NA"/g, "0"));
+}
 
 
-export async function oracleQuery(textQuery: string): Promise<any> {
+export async function dbQuery(textQuery: string): Promise<any> {
     const connection = new DatabaseConnection();
     const dbConnect = await connection.connectWithDB();
     try {
         const result = await dbConnect.execute(textQuery);
-        return result;
+        const oracleJson = cleanifyJson(result.rows[0]);
+        return oracleJson;
     } catch (error) {
         console.log(error);
         throw new Error('Query not found');
