@@ -70,9 +70,9 @@ export class CompanyRepository implements DataRepository<CompanyYear>{
         // if the year of the current status row < year of the forecast row, then select _NEW tables for normalization
         // else is unspecified => error
         let normSuffix;
-        if (currentStatus.maa_protsent == companyForecast.maa_protsent) {
+        if (currentStatus.aasta == companyForecast.aasta) {
             normSuffix = '_vana';
-        } else if (currentStatus.maa_protsent < companyForecast.maa_protsent) {
+        } else if (currentStatus.aasta < companyForecast.aasta) {
             normSuffix = '_uus';
         } else {
             throw new Error("No normalization table found.");
