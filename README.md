@@ -116,3 +116,9 @@ For each model:
   - `modelY1`: Represents the X dimension of the prediction.
   - `modelY2`: Represents the Y dimension of the prediction.
   - `modelY3`: Represents the Z dimension of the prediction.
+
+## Testing SQL queries
+
+[company_year_repository.ts](src/infrastructure/company_year_repository.ts)
+[norm_monthly_repository.ts](src/infrastructure/norm_monthly_repository.ts)
+[norm_yearly_repository.ts](src/infrastructure/norm_yearly_repository.ts)
