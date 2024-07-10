@@ -7,8 +7,8 @@ export class NormYearlyRepository implements NormalisationRepository<YearlyClust
     async getSds(klaster: string, normSuffix: string): Promise<YearlyCluster> {
         const query = `
             SELECT *
-                FROM ELUJOULISUSEINDEKS.NORM_AASTA_SDS${normSuffix}
-                WHERE klaster = '${klaster}'
+                FROM "ELUJOULISUSEINDEKS"."NORM_AASTA_SDS${normSuffix}"
+                WHERE "klaster" = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
         `;
         const response = await dbQuery(query);
@@ -20,8 +20,8 @@ export class NormYearlyRepository implements NormalisationRepository<YearlyClust
     async getMea(klaster: string, normSuffix: string): Promise<YearlyCluster> {
         const query = `
             SELECT *
-                FROM ELUJOULISUSEINDEKS.NORM_AASTA_KESK${normSuffix}
-                WHERE klaster = '${klaster}'
+                FROM "ELUJOULISUSEINDEKS"."NORM_AASTA_KESK${normSuffix}"
+                WHERE "klaster" = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
         `;
         const response = await dbQuery(query);

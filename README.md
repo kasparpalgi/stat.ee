@@ -9,56 +9,43 @@ This guide will walk you through the setup process for the Stat-ee project on yo
 ### Prerequisites
 
 Ensure you have the following installed:
-- Node.js (version 18 or later)
-- Docker and Docker Compose
 - Git (for cloning the repository)
+- Docker and Docker Compose
+- You must have the Docker image file (e.g., `stat-ee.tar`) available on your system.
 
 ### Getting Started
 
-### 1. Clone the Repository
+### Step 1: Open a Terminal
 
-Clone the Stat-ee repository to your local machine:
+Open a terminal or command prompt on your system.
 
-```bash
-git clone https://github.com/crewnew/stat-ee.git
-cd stat-ee
-```
-### 2. Environment Setup
+### Step 2: Load the Docker Image
 
+Use the `docker load` command to load the Docker image from the file. Replace `stat-ee.tar` with the path to your Docker image file if it is in a different location or has a different name.
 
-Copy the .env.example file to a new file named .env and update the environment variables to match your setup:
-
-```bash
-cp .env.example .env
-```
-Edit the .env file with your preferred text editor and update the values accordingly.
-
-### 3. Docker Setup (live server deployment)
-
-Build and start the Docker containers:
-
-```bash
-docker-compose up --build
+```sh
+docker load -i stat-ee.tar
 ```
 
-This command builds the Docker image and starts the containers as defined in docker-compose.yml. The application will be running on port 3000 by default.
+This command will read the tar file and load the Docker image into your local Docker environment.
 
-### Install Dependencies
+### Step 3: Verify the Image
 
-While the Docker container usually handles this automatically, you can manually install the project dependencies if necessary:
+Once the image is loaded, you can verify that it has been successfully loaded by listing the Docker images on your system.
 
-```bash
-npm install
+```sh
+docker images
 ```
 
-### Running the Application
+You should see the `stat-ee` image listed among the available images.
 
-With Docker, the application should start automatically after the containers are up. However, if you're running the application locally:
+### Step 4: Run the Docker Image
 
-```bash
-npm start
+Now that the image is loaded, you can run it using the `docker run` command. The following example runs the image and maps port 3000 on your local machine to port 3000 in the container. Adjust the port numbers as necessary for your application.
+
+```sh
+docker run -p 3000:3000 stat-ee:latest
 ```
-This command will build the TypeScript files and then start the application.
 
 ### Accessing the Application
 

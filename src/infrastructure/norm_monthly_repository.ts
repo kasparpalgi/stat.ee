@@ -13,8 +13,8 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
     async getMonthly(id: string): Promise<Monthly> {
         const query = `
             SELECT *
-                FROM ELUJOULISUSEINDEKS.KUISED
-                WHERE kood = ${id}
+                FROM "ELUJOULISUSEINDEKS"."KUISED"
+                WHERE "kood" = ${id}
             FETCH FIRST 1 ROWS ONLY
         `;
         const response = await dbQuery(query);
@@ -26,8 +26,8 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
     async getSds(klaster: string): Promise<MonthlyCluster> {
         const query = `
             SELECT *
-                FROM ELUJOULISUSEINDEKS.NORM_KUU_SDS
-                WHERE klaster = '${klaster}'
+                FROM "ELUJOULISUSEINDEKS"."NORM_KUU_SDS"
+                WHERE "klaster" = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
         `
         const response = await dbQuery(query);
@@ -38,8 +38,8 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
     async getMea(klaster: string): Promise<MonthlyCluster> {
         const query = `
             SELECT *
-                FROM ELUJOULISUSEINDEKS.NORM_KUU_KESK
-                WHERE klaster = '${klaster}'
+                FROM "ELUJOULISUSEINDEKS"."NORM_KUU_KESK"
+                WHERE "klaster" = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
         `;
         const response = await dbQuery(query);

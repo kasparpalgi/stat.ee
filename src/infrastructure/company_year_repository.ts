@@ -11,15 +11,15 @@ export class CompanyRepository implements DataRepository<CompanyYear>{
         const query = `
             WITH Filtered AS (
                 SELECT *
-                FROM ELUJOULISUSEINDEKS.AASTASED
-                WHERE jykood = ${id}
-                ORDER BY aasta DESC
+                FROM "ELUJOULISUSEINDEKS"."AASTASED"
+                WHERE "jykood" = ${id}
+                ORDER BY "aasta" DESC
                 FETCH FIRST 2 ROWS ONLY
             )
             SELECT *
             FROM Filtered
-            WHERE maa_protsent >= 0.9
-            ORDER BY aasta DESC
+            WHERE "maa_protsent" >= 0.9
+            ORDER BY "aasta" DESC
             FETCH FIRST 1 ROW ONLY
         `
         const response = await dbQuery(query);
@@ -31,9 +31,9 @@ export class CompanyRepository implements DataRepository<CompanyYear>{
     async getCompanyYear(id: string): Promise<CompanyYear> {
         const query = `
         SELECT *
-                FROM ELUJOULISUSEINDEKS.AASTASED
-                WHERE jykood = ${id}
-                ORDER BY aasta DESC
+                FROM "ELUJOULISUSEINDEKS"."AASTASED"
+                WHERE "jykood" = ${id}
+                ORDER BY "aasta" DESC
         FETCH FIRST 1 ROWS ONLY
         `;
         const result = await dbQuery(query);
