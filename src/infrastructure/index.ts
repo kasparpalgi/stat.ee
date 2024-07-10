@@ -1,4 +1,4 @@
-export * from './database_client/oracle';
+export * from './database/oracle';
 export * from './models';
 export * from './norm_yearly_repository';
 export * from './norm_monthly_repository';

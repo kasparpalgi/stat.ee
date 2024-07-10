@@ -1,4 +1,4 @@
-import { dbQuery } from "./database_client/oracle";
+import { dbQuery } from "./database/oracle";
 import { Monthly, MonthlyCluster } from "./models";
 import { NormalisationRepository  } from "./repository";
 import { checkMissingProperties  } from "./../application";
@@ -13,10 +13,10 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
     async getMonthly(id: string): Promise<Monthly> {
         const query = `
             SELECT *
-                FROM elujoulisuseindeks.kuised
-                WHERE kood = '${id}'
+                FROM ELUJOULISUSEINDEKS.KUISED
+                WHERE kood = ${id}
             FETCH FIRST 1 ROWS ONLY
-        `
+        `;
         const response = await dbQuery(query);
         const res = Monthly.deserialize(response);
         checkMissingProperties(res, 3);
@@ -26,7 +26,7 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
     async getSds(klaster: string): Promise<MonthlyCluster> {
         const query = `
             SELECT *
-                FROM elujoulisuseindeks.norm_kuu_sds
+                FROM ELUJOULISUSEINDEKS.NORM_KUU_SDS
                 WHERE klaster = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
         `
@@ -38,10 +38,10 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
     async getMea(klaster: string): Promise<MonthlyCluster> {
         const query = `
             SELECT *
-                FROM elujoulisuseindeks.norm_kuu_kesk
+                FROM ELUJOULISUSEINDEKS.NORM_KUU_KESK
                 WHERE klaster = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
-        `
+        `;
         const response = await dbQuery(query);
         const result = MonthlyCluster.deserialize(response).clamp();
         return result;

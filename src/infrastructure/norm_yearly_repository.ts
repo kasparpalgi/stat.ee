@@ -1,4 +1,4 @@
-import { dbQuery } from "./database_client/oracle";
+import { dbQuery } from "./database/oracle";
 import {  YearlyCluster } from "./models";
 import { NormalisationRepository as NormalisationRepository } from "./repository";
 
@@ -7,10 +7,10 @@ export class NormYearlyRepository implements NormalisationRepository<YearlyClust
     async getSds(klaster: string, normSuffix: string): Promise<YearlyCluster> {
         const query = `
             SELECT *
-                FROM elujoulisuseindeks.norm_aasta_sds${normSuffix}
+                FROM ELUJOULISUSEINDEKS.NORM_AASTA_SDS${normSuffix}
                 WHERE klaster = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
-        `
+        `;
         const response = await dbQuery(query);
         const result = YearlyCluster.deserialize(response).clamp();
         
@@ -20,10 +20,10 @@ export class NormYearlyRepository implements NormalisationRepository<YearlyClust
     async getMea(klaster: string, normSuffix: string): Promise<YearlyCluster> {
         const query = `
             SELECT *
-                FROM elujoulisuseindeks.norm_aasta_kesk${normSuffix}
+                FROM ELUJOULISUSEINDEKS.NORM_AASTA_KESK${normSuffix}
                 WHERE klaster = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
-        `
+        `;
         const response = await dbQuery(query);
         const result = YearlyCluster.deserialize(response).clamp();
 

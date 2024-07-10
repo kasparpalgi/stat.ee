@@ -1,4 +1,4 @@
-import { dbQuery } from "./database_client/oracle";
+import { dbQuery } from "./database/oracle";
 import { Company, YearlyCluster, CompanyYear } from "./models";
 import { DataRepository } from "./repository";
 
@@ -11,8 +11,8 @@ export class CompanyRepository implements DataRepository<CompanyYear>{
         const query = `
             WITH Filtered AS (
                 SELECT *
-                FROM elujoulisuseindeks.aastased
-                WHERE jykood = '${id}'
+                FROM ELUJOULISUSEINDEKS.AASTASED
+                WHERE jykood = ${id}
                 ORDER BY aasta DESC
                 FETCH FIRST 2 ROWS ONLY
             )
@@ -20,7 +20,7 @@ export class CompanyRepository implements DataRepository<CompanyYear>{
             FROM Filtered
             WHERE maa_protsent >= 0.9
             ORDER BY aasta DESC
-            FETCH FIRST 1 ROW ONLY;
+            FETCH FIRST 1 ROW ONLY
         `
         const response = await dbQuery(query);
         const company = Company.deserialize(response);
@@ -31,7 +31,7 @@ export class CompanyRepository implements DataRepository<CompanyYear>{
     async getCompanyYear(id: string): Promise<CompanyYear> {
         const query = `
         SELECT *
-                FROM elujoulisuseindeks.aastased
+                FROM ELUJOULISUSEINDEKS.AASTASED
                 WHERE jykood = ${id}
                 ORDER BY aasta DESC
         FETCH FIRST 1 ROWS ONLY
@@ -50,9 +50,9 @@ export class CompanyRepository implements DataRepository<CompanyYear>{
         // else is unspecified => error
         let normSuffix;
         if (currentStatus.aasta == companyForecast.aasta) {
-            normSuffix = '_vana';
+            normSuffix = '_VANA';
         } else if (currentStatus.aasta < companyForecast.aasta) {
-            normSuffix = '_uus';
+            normSuffix = '_UUS';
         } else {
             throw new Error("No normalization table found.");
         }
