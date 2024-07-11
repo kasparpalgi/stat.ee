@@ -5,7 +5,13 @@ require('dotenv').config();
 let { ORACLE_USER, ORACLE_PASSWORD, ORACLE_CONNECT_STRING } = process.env;
 
 function cleanifyJson(json: Record<string, any>): Record<string, any> {
-    return JSON.parse(JSON.stringify(json).replace(/"NA"/g, "0"));
+    try {
+        return JSON.parse(JSON.stringify(json).replace(/"NA"/g, "0"));
+    } catch (e) {
+        console.error("Failed to clean json:", e);
+        console.error("JSON:", json);
+        return {};
+    }
 }
 
 
@@ -14,6 +20,7 @@ export async function dbQuery(textQuery: string): Promise<any> {
     const dbConnect = await connection.connectWithDB();
     try {
         const result = await dbConnect.execute(textQuery);
+        console.log('Query executed successfully', result);
         const oracleJson = cleanifyJson(result.rows[0]);
         return oracleJson;
     } catch (error) {
@@ -22,7 +29,6 @@ export async function dbQuery(textQuery: string): Promise<any> {
     } finally {
         new DatabaseConnection().doRelease(dbConnect);
     }
-
 }
 
 export default class DatabaseConnection {

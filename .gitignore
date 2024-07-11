@@ -6,3 +6,6 @@
 /dist
 /coverage
 /.stat-ee.tar
+/stat-ee
+stat-ee.tar
+.DS_Store

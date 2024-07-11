@@ -8,7 +8,6 @@ require('dotenv').config();
 export const port = 3000;
 
 const app = express();
-app.use(require('express-status-monitor')());
 app.use('/static', express.static('models'))
 app.get('/eestat/1/elujoud/:id', async (req: Request, res: Response) => handleCompanyId(req, res));
 
