@@ -4,7 +4,7 @@
 
 ## Setup Guide for Stat-ee
 
-This guide will walk you through the setup process for the Stat-ee project on your local environment using PostgreSQL\Oracle.
+This guide will walk you through the setup process for the Stat-ee project on your local environment using Oracle.
 
 ### Prerequisites
 
