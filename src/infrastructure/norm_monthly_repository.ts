@@ -1,7 +1,7 @@
 import { dbQuery } from "./database/oracle";
-import { Monthly, MonthlyCluster } from "./models";
+import { MonthlyCluster } from "./models";
 import { NormalisationRepository  } from "./repository";
-import { checkMissingProperties  } from "./../application";
+import { checkMissingProperties, convertKeysToLowerCase  } from "./../application";
 
 
 export class NormMonthlyRepository implements NormalisationRepository<MonthlyCluster>{
@@ -10,7 +10,7 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
      * @param id - The company identifier identifier.
      * @returns A promise that resolves to the monthly cluster data.
      */
-    async getMonthly(id: string): Promise<Monthly> {
+    async getMonthly(id: string): Promise<MonthlyCluster> {
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."KUISED"
@@ -18,8 +18,9 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
             FETCH FIRST 1 ROWS ONLY
         `;
         const response = await dbQuery(query);
-        const res = Monthly.deserialize(response);
+        const res = MonthlyCluster.deserialize(response).clamp();
         checkMissingProperties(res, 3);
+
         return res;
     }
 
@@ -27,11 +28,14 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."NORM_KUU_SDS"
-                WHERE "klaster" = '${klaster}'
+                WHERE "Klaster" = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
         `
+
         const response = await dbQuery(query);
-        const result = MonthlyCluster.deserialize(response).clamp();
+        const formattedResponse = convertKeysToLowerCase(response);
+        const result = MonthlyCluster.deserialize(formattedResponse).clamp();
+
         return result;
     }
     
@@ -39,11 +43,12 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."NORM_KUU_KESK"
-                WHERE "klaster" = '${klaster}'
+                WHERE "Klaster" = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
         `;
         const response = await dbQuery(query);
-        const result = MonthlyCluster.deserialize(response).clamp();
+        const formattedResponse = convertKeysToLowerCase(response);
+        const result = MonthlyCluster.deserialize(formattedResponse).clamp();
         return result;
     }
 }

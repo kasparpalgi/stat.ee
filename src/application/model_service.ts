@@ -4,7 +4,7 @@ import { PredictionResponse } from "../domain";
 import { Prediction } from "../domain";
 import { port } from "../app";
 
-import { NormYearlyRepository, NormMonthlyRepository, Company, Monthly, CompanyYear, YearlyCluster, MonthlyCluster } from "../infrastructure";
+import { NormYearlyRepository, NormMonthlyRepository, Company, CompanyYear, YearlyCluster, MonthlyCluster } from "../infrastructure";
 
 /**
  * Represents a service for working with yearly models.
@@ -43,6 +43,7 @@ export class ModelService {
   async resolveYearly(companyYear: CompanyYear): Promise<YearlyCluster>{
     // Clamp the company yearly predictable values
     const year = companyYear.year.clamp();
+
     // Get the MEA values for the company klaster
     const mea = await this.yearlyRepository.getMea(companyYear.company.klaster, companyYear.normSuffix);
     // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
@@ -55,14 +56,12 @@ export class ModelService {
   }
 
   
-  async resolveMonthly(monthly: Monthly): Promise<MonthlyCluster> {
-    // Converts the monthly data to a cluster and clamps the values.
-    const cluster = monthly.toCluster().clamp();
+  async resolveMonthly(cluster: MonthlyCluster): Promise<MonthlyCluster> {
     // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
-    const mea = await this.monthlyRepository.getMea(monthly.klaster);
+    const mea = await this.monthlyRepository.getMea(cluster.klaster);
     const meaSubstracted = cluster.substract(mea);
     // Divides each field by the corresponding `sds` value based on the cluster.
-    const sds = await this.monthlyRepository.getSds(monthly.klaster);
+    const sds = await this.monthlyRepository.getSds(cluster.klaster);
     const sdsDivided = meaSubstracted.divide(sds);
 
     return sdsDivided;

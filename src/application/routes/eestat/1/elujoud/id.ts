@@ -16,15 +16,13 @@ export default async function handleCompanyId(req: Request, res: Response): Prom
         const year = await new ModelService().resolveYearly(companyYear);
         const prediction = await new ModelService().predictionResponse(company,year);
 
-        res.send({
-            response: JSON.stringify({
-                // Unchanged Values
-                ...company,
-                // Predictable Values
-                ...year,
-                // Prediction
-                ...prediction
-            })
+        res.json({
+            // Cuurent Company Values (Unchanged)
+            ...company,
+            // Predictable Values
+            ...year,
+            // Prediction
+            ...prediction
         });
         
     } catch (error) {

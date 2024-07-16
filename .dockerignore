@@ -4,3 +4,6 @@ build
 .git
 .gitignore
 dist/
+docs/
+.vscode/
+state-ee.tar
