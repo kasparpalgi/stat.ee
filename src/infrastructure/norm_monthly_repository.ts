@@ -28,7 +28,7 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."NORM_KUU_SDS"
-                WHERE "Klaster" = '${klaster}'
+                WHERE "klaster" = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
         `
 
@@ -43,7 +43,7 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."NORM_KUU_KESK"
-                WHERE "Klaster" = '${klaster}'
+                WHERE "klaster" = '${klaster}'
             FETCH FIRST 1 ROWS ONLY
         `;
         const response = await dbQuery(query);
