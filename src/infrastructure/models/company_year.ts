@@ -12,5 +12,5 @@ export interface CompanyYearPediction {
 export interface CompanyYear {
     company: Company;
     year: YearlyCluster;
-    normSuffix?: '_UUS' | '_VANNA';
+    normSuffix?: '_UUS' | '_VANA';
 }

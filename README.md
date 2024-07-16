@@ -47,6 +47,14 @@ Now that the image is loaded, you can run it using the `docker run` command. The
 docker run -p 3000:3000 stat-ee:latest
 ```
 
+### Step 5: Logs
+
+If you want to view the logs of the running container, you can use the `docker logs` command. Replace `$containerId` with the ID of the running container.
+
+```sh
+docker logs $containerId -f
+```
+
 ### Accessing the Application
 
 Once the application is running, access it by navigating to http://localhost:3000 in your web browser (or the port you configured).
