@@ -1,7 +1,7 @@
 import { dbQuery } from "./database/oracle";
 import { MonthlyCluster } from "./models";
 import { NormalisationRepository } from "./repository";
-import { checkMissingProperties, convertKeysToLowerCase } from "./../application";
+import { checkExists, checkMissingProperties, convertKeysToLowerCase } from "./../application";
 import { logQueryError, logQuerySuccess } from "../application";
 
 export class NormMonthlyRepository implements NormalisationRepository<MonthlyCluster> {
@@ -9,42 +9,50 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
      * Retrieves the monthly data for a given kood.
      * @param id - The company identifier identifier.
      * @returns A promise that resolves to the monthly cluster data.
+     * 
+     * 
+     * @throws {Error('Number of missing properties exceeds the limit')},
+     * @throws {Error('Object does not exist')}
      */
-    async getMonthly(id: string, correlationID: string): Promise<MonthlyCluster> {
+    async getMonthly(id: string, correlationID: string): Promise<MonthlyCluster | null> {
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."KUISED"
-                WHERE "kood" = ${id}
+                WHERE "kood" = :kood
             FETCH FIRST 1 ROWS ONLY
         `;
         try {
-            const response = await dbQuery(query);
-            logQuerySuccess(correlationID, query, response);
-            const res = MonthlyCluster.deserialize(response).clamp();
-            checkMissingProperties(res, 3);
-            return res;
+            const response = await dbQuery(query, { kood: id }, correlationID);
+            const monthly = MonthlyCluster.deserialize(response).clamp();
+            checkMissingProperties(monthly, 3);
+            checkExists(monthly);
+            return monthly;
         } catch (error) {
-            logQueryError(correlationID, query, error);
-            throw error;
+            switch (error.message) {
+                case 'Number of missing properties exceeds the limi':
+                    throw new Error('Number of missing properties exceeds the limi');
+                case 'Object does not exist':
+                default:
+                    throw new Error('Monthly data not found');
+            }
+            
         }
 
     }
 
-    async getSds(klaster: string, correlationID: string): Promise<MonthlyCluster> {
+    async getSds(klaster: string, correlationID: string): Promise<MonthlyCluster | null> {
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."NORM_KUU_SDS"
-                WHERE "klaster" = '${klaster}'
+                WHERE "klaster" = :klaster
             FETCH FIRST 1 ROWS ONLY
         `
         try {
-            const response = await dbQuery(query);
-            logQuerySuccess(correlationID, query, response);
+            const response = await dbQuery(query, { klaster }, correlationID);
             const formattedResponse = convertKeysToLowerCase(response);
             return MonthlyCluster.deserialize(formattedResponse).clamp();
         } catch (error) {
-            logQueryError(correlationID, query, error);
-            throw error;
+            throw Error('Monthly SDS not found');
         }
     }
 
@@ -52,17 +60,17 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."NORM_KUU_KESK"
-                WHERE "klaster" = '${klaster}'
+                WHERE "klaster" = :klaster
             FETCH FIRST 1 ROWS ONLY
             `;
         try {
-            const response = await dbQuery(query);
-            logQuerySuccess(correlationID, query, response);
+            const response = await dbQuery(query, { klaster }, correlationID);
             const formattedResponse = convertKeysToLowerCase(response);
             return MonthlyCluster.deserialize(formattedResponse).clamp();
         } catch (error) {
-            logQueryError(correlationID, query, error);
-            throw error;
+            throw Error('Monthly MEA not found');
         }
     }
+
+
 }

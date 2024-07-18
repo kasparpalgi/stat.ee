@@ -1,6 +1,6 @@
 {
   "name": "stat-ee",
-  "version": "1.0.0",
+  "version": "1.0.0+6",
   "description": "",
   "main": "src/index.ts",
   "directories": {
@@ -13,7 +13,11 @@
     "watch:build": "tsc --watch",
     "build": "tsc",
     "convert": "npm run build && node dist/src/converter.js",
-    "ts-coverage": "typescript-coverage-report"
+    "ts-coverage": "typescript-coverage-report",
+    "dev": "tsc && node dist/src/app.js",
+    "docker:build": "docker build -t stat-ee:latest .",
+    "docker:save": "docker save -o stat-ee.tar stat-ee:latest",
+    "docker": "npm run docker:build && npm run docker:save"
   },
   "repository": {
     "type": "git",

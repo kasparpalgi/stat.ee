@@ -1,15 +1,7 @@
 import { randomUUID } from "crypto";
 
 function logToStdout( message: QueryLog | RequestLog) {
-    process.stdout.write(JSON.stringify(message) + '\n');
-}
-
-export function logQuery(log: QueryLog) {
-    logToStdout(log);
-}
-
-export function logRequest(log: RequestLog) {
-    logToStdout(log);
+    // process.stdout.write(JSON.stringify(message) + '\n');
 }
 
 export function logRequestError(request_id: string, error_message: string) {

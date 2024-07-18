@@ -1,5 +1,5 @@
-import OracleDB from 'oracledb';
-import { replaceNaWith0 } from '../../application';
+import OracleDB, { BindParameters } from 'oracledb';
+import { logQueryError, logQuerySuccess, replaceNaWith0 } from '../../application';
 
 require('dotenv').config();
 
@@ -8,15 +8,16 @@ let { ORACLE_USER, ORACLE_PASSWORD, ORACLE_CONNECT_STRING } = process.env;
 
 
 
-export async function dbQuery(textQuery: string): Promise<any> {
+export async function dbQuery(textQuery: string, variables: BindParameters,correlationID: string ): Promise<any> {
     const connection = new DatabaseConnection();
     const dbConnect = await connection.connectWithDB();
     try {
-        const result = await dbConnect.execute(textQuery, [], { outFormat: OracleDB.OUT_FORMAT_OBJECT });
+        const result = await dbConnect.execute(textQuery, variables, { outFormat: OracleDB.OUT_FORMAT_OBJECT });
+        logQuerySuccess(correlationID, textQuery, result);
         const json = replaceNaWith0(result.rows[0]);
         return json;
     } catch (error) {
-        console.log(error);
+        logQueryError(correlationID, textQuery, error);
         throw new Error('Query not found');
     } finally {
         new DatabaseConnection().doRelease(dbConnect);

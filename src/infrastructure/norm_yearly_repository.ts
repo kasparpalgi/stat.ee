@@ -5,37 +5,33 @@ import { NormalisationRepository as NormalisationRepository } from "./repository
 
 
 export class NormYearlyRepository implements NormalisationRepository<YearlyCluster> {
-    async getSds(klaster: string, normSuffix: string, correlationID: string): Promise<YearlyCluster> {
+    async getSds(klaster: string, normSuffix: string, correlationID: string): Promise<YearlyCluster | null> {
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."NORM_AASTA_SDS${normSuffix}"
-                WHERE "klaster" = '${klaster}'
+                WHERE "klaster" = :klaster
             FETCH FIRST 1 ROWS ONLY
         `;
         try {
-            const response = await dbQuery(query);
-            logQuerySuccess(correlationID, query, response);
+            const response = await dbQuery(query, { klaster }, correlationID);
             return YearlyCluster.deserialize(response).clamp();
         } catch (error) {
-            logQueryError(correlationID, query, error);
-            throw error;
+            throw Error('Yearly SDS not found');
         }
     }
 
-    async getMea(klaster: string, normSuffix: string, correlationID: string): Promise<YearlyCluster> {
+    async getMea(klaster: string, normSuffix: string, correlationID: string): Promise<YearlyCluster | null> {
         const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."NORM_AASTA_KESK${normSuffix}"
-                WHERE "klaster" = '${klaster}'
+                WHERE "klaster" = :klaster
             FETCH FIRST 1 ROWS ONLY
         `;
         try {
-            const response = await dbQuery(query);
-            logQuerySuccess(correlationID, query, response);
+            const response = await dbQuery(query, { klaster }, correlationID);
             return YearlyCluster.deserialize(response).clamp();
         } catch (error) {
-            logQueryError(correlationID, query, error);
-            throw error;
+            throw Error('Yearly MEA not found');
         }
     }
 }

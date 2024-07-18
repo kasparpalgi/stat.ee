@@ -67,10 +67,9 @@ export class ModelService {
     return sdsDivided;
   }
 
-  async predictMonthlyGrowth(company: Company, correlationID: string): Promise<Prediction> {
+  async predictMonthlyGrowth(company: Company, monthly: MonthlyCluster, correlationID: string): Promise<Prediction> {
     // Load the pre-trained model layer for the specified cluster and indicator.
     const layer = await this.loadClusterModel(company.klaster, ModelIndicator.Growth);
-    const monthly = await this.monthlyRepository.getMonthly(company.jykood, correlationID);
     // Fetch the required data for prediction.
     const resolvedMonthly = await this.resolveMonthly(monthly, correlationID);
     // Create a tensor from the flattened array.
@@ -102,11 +101,12 @@ export class ModelService {
   async predictIndicator(
     company: Company,
     year: YearlyCluster,
+    monthly: MonthlyCluster,
     indicator: ModelIndicator,
     correlationID: string
   ): Promise<Prediction> {
     if (indicator === ModelIndicator.Growth) {
-      return this.predictMonthlyGrowth(company, correlationID);
+      return this.predictMonthlyGrowth(company, monthly, correlationID);
     }
     const data = year.toArray();
     const tensor = await tf.tensor2d(data, [1, 64]);
@@ -128,26 +128,27 @@ export class ModelService {
     };
   }
 
-  async predictionResponse(company: Company, year: YearlyCluster, correlationID: string): Promise<PredictionResponse> {
+  async predictionResponse(company: Company, year: YearlyCluster, monthly: MonthlyCluster,
+ correlationID: string): Promise<PredictionResponse> {
     const response = new PredictionResponse();
     
-    const liquidity = await this.predictIndicator(company, year, ModelIndicator.Liquidity, correlationID);
+    const liquidity = await this.predictIndicator(company, year, monthly, ModelIndicator.Liquidity, correlationID,);
     response.model1y1 = liquidity.low;
     response.model1y2 = liquidity.medium;
     response.model1y3 = liquidity.high;
-    const profitability = await this.predictIndicator(company, year, ModelIndicator.Profitability, correlationID);
+    const profitability = await this.predictIndicator(company, year, monthly, ModelIndicator.Profitability, correlationID);
     response.model2y1 = profitability.low;
     response.model2y2 = profitability.medium;
     response.model2y3 = profitability.high;
-    const efficiency = await this.predictIndicator(company, year, ModelIndicator.Efficiency, correlationID);
+    const efficiency = await this.predictIndicator(company, year, monthly, ModelIndicator.Efficiency, correlationID);
     response.model3y1 = efficiency.low;
     response.model3y2 = efficiency.medium;
     response.model3y3 = efficiency.high;
-    const structure = await this.predictIndicator(company, year, ModelIndicator.Structure, correlationID);
+    const structure = await this.predictIndicator(company, year, monthly, ModelIndicator.Structure, correlationID);
     response.model4y1 = structure.low;
     response.model4y2 = structure.medium;
     response.model4y3 = structure.high;
-    const growth = await this.predictIndicator(company, year, ModelIndicator.Growth, correlationID);
+    const growth = await this.predictIndicator(company, year, monthly, ModelIndicator.Growth, correlationID);
     response.model5y1 = growth.low;
     response.model5y2 = growth.medium;
     response.model5y3 = growth.high;

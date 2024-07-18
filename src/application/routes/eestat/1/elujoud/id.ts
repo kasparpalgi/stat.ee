@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { sendError } from '../../../../utils';
 import { ModelService } from '../../../../../application';
-import { CompanyRepository } from '../../../../../infrastructure';
-import { logRequest, logRequestError, logRequestSuccess } from '../../../../logger';
+import { CompanyRepository, NormMonthlyRepository } from '../../../../../infrastructure';
+import { logRequestError, logRequestSuccess } from '../../../../logger';
 import { randomUUID } from 'crypto';
+import { handleErrors } from '../../../../error_mapper';
 
 /**
 * Handles the prognosing for a given company ID.
@@ -14,35 +14,34 @@ export default async function handleCompanyId(req: Request, res: Response): Prom
     const correlationID = randomUUID();
     try {
         const id = req.params.id as string;
-        const companyYear = await new CompanyRepository().getCompanyYear(id, correlationID);
-        const company = companyYear.company;
-        const year = await new ModelService().resolveYearly(companyYear, correlationID);
-        const prediction = await new ModelService().predictionResponse(company,year,correlationID);
+        // Will throw an error if the ID is not an 8-digit number.
+        // Will throw an error if the "klaster" is 'muu'.
+        const company = await new CompanyRepository().getCompanyCurrentStatus(id, correlationID);
+        // Wiil throw an error if the yearly data is not found.
+        const companyYear = await new CompanyRepository().getCompanyYear(company, correlationID);
+        // Will throw an error if the monthly data is not found.
+        const monthly = await new NormMonthlyRepository().getMonthly(id, correlationID);
+
+        const monthlyCluster = await new ModelService().resolveMonthly(monthly, correlationID);
+        const yearlyCluster = await new ModelService().resolveYearly(companyYear, correlationID);
+        const prediction = await new ModelService().predictionResponse(company, yearlyCluster, monthlyCluster, correlationID);
         const response = {
             // Cuurent Company Values (Unchanged)
             ...company,
             // Predictable Values
-            ...year,
+            ...yearlyCluster,
             // Prediction
             ...prediction
         };
-        // Log the request
         logRequestSuccess(correlationID, response);
-        // Return the response
-        res.json(response);
-    } catch (error) {
-        logRequestError(correlationID, error.message);
-        switch (error.message) {
-            case 'Insufficient data':
-                return sendError(res, "insufficient-data");
-            case "Company not found":
-                return sendError(res, "company-not-found");
-            case "Cluster not found":
-                return sendError(res, "cluster-not-found");
-            default:
-                return sendError(res, "bad-request");
-        }
-    } finally {
-        
+        res.status(200).json(response);
+        return;
+    } catch (e) {
+        logRequestError(correlationID, e.message);
+        handleErrors(req, res, e, correlationID);
+        return;
     }
+
+
+    
 }

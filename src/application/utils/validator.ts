@@ -3,8 +3,12 @@ export function checkMissingProperties<T>(obj: T,limit: number): void {
     const missingCount = properties.filter(value => value === null || value === undefined).length;
 
     if (missingCount > limit) {
-        console.log(`Missing properties: ${missingCount}`);
-        throw new Error(`Insufficient data`);
+        throw new Error(`Number of missing properties exceeds the limit`);
     }
 }
 
+export function checkExists<T>(obj: T): void {
+    if (obj === null || obj === undefined) {
+        throw new Error(`Object does not exist`);
+    }
+}

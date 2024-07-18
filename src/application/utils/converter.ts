@@ -10,8 +10,8 @@ export function replaceNaWith0(json: Record<string, any>): Record<string, any> {
     try {
         return JSON.parse(JSON.stringify(json).replace(/"NA"/g, "0"));
     } catch (e) {
-        console.error("Failed to clean json:", e);
-        console.error("JSON:", json);
+        // console.error("Failed to clean json:", e);
+        // console.error("JSON:", json);
         throw e;
     }
 }

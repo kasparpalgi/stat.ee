@@ -1,19 +1,22 @@
 import { logQueryError, logQuerySuccess } from "../application";
 import { dbQuery } from "./database/oracle";
-import { Company, YearlyCluster, CompanyYear } from "./models";
+import { Company, YearlyCluster, CompanyYear, MonthlyCluster } from "./models";
 import { DataRepository } from "./repository";
 
 
 export class CompanyRepository implements DataRepository<CompanyYear> {
-    // x2_current_status = look at the land_percent values in x2 and select HETKESEISUDE_TUNNUSED from the row where:
-    // a) land_percent >= 0.9.
-    // b) if both rows have land_percent >= 0.9, select HETKESEISUDE_TUNNUSED from the row with the larger "year"
+    /** 
+    * Retrieves the current status of a company.
+    * @param id - The company identifier.
+    * @returns A promise that resolves to the current status of the company.
+    * @throws {Error('Cluster is not valid')} - If the cluster is 'muu'.
+    **/
     async getCompanyCurrentStatus(id: string, correlationID: string): Promise<Company> {
         const query = `
             WITH Filtered AS (
                 SELECT *
                 FROM "ELUJOULISUSEINDEKS"."AASTASED"
-                WHERE "jykood" = ${id}
+                WHERE "jykood" = :jykood
                 ORDER BY "aasta" DESC
                 FETCH FIRST 2 ROWS ONLY
             )
@@ -24,54 +27,67 @@ export class CompanyRepository implements DataRepository<CompanyYear> {
             FETCH FIRST 1 ROW ONLY
         `
         try {
-            const response = await dbQuery(query);
-            logQuerySuccess(correlationID, query, response);
+            if (id.length !== 8 || isNaN(parseInt(id))) {
+                throw new Error("ID must be an 8-digit number");
+            }
+            const response = await dbQuery(query, { jykood: id }, correlationID);
+            const company = Company.deserialize(response);
+            if (company.klaster === 'muu') {
+                throw new Error("Cluster is not valid");
+            }
             return Company.deserialize(response);
         } catch (error) {
-            logQueryError(correlationID, query, error);
-            throw error;
+            switch (error.message) {
+                case "ID must be an 8-digit number":
+                    throw new Error("ID must be an 8-digit number");
+                case "Cluster is not valid":
+                    throw new Error("Cluster is not valid");
+                default:
+                    throw new Error("Company not found");
+            }
         }
     }
 
-    async getCompanyYear(id: string, correlationID: string): Promise<CompanyYear> {
+    async getCompanyYear(company: Company, correlationID: string): Promise<CompanyYear> {
         const query = `
         SELECT *
                 FROM "ELUJOULISUSEINDEKS"."AASTASED"
-                WHERE "jykood" = ${id}
+                WHERE "jykood" = :jykood
                 ORDER BY "aasta" DESC
         FETCH FIRST 1 ROWS ONLY
         `;
         try {
-            const result = await dbQuery(query);
-            logQuerySuccess(correlationID, query, result);
-            const companyForecast = Company.deserialize(result);
+            const result = await dbQuery(query, { jykood: company.jykood },correlationID);
+            const forecastCompany = Company.deserialize(result);
             const forecastYear = YearlyCluster.deserialize(result);
-            // This query will get logged internally.
-            const currentStatus = await new CompanyRepository().getCompanyCurrentStatus(id, correlationID);
-
-            const normSuffix = this.getNormalizationSuffix(currentStatus, companyForecast);
-
+            if (forecastCompany === null || forecastYear === null) {
+                throw new Error("Yearly data not found");
+            }
+            const normSuffix = this.computeNormSuffix(company, forecastCompany);
             return {
-                company: currentStatus,
+                company: company,
                 year: forecastYear,
-                normSuffix: normSuffix
+                normSuffix: normSuffix,
             }
         } catch (error) {
-            logQueryError(correlationID, query, error);
-            throw error;
+            switch (error.message) {
+                case "Yearly data not found":
+                    throw new Error("Yearly data not found");
+                default:
+                    throw new Error("Company not found");
+            }
         }
     }
 
     // New function to determine the normalization suffix
-    private getNormalizationSuffix(currentStatus: { aasta: number }, companyForecast: { aasta: number }): '_UUS' | '_VANA'{
+    private computeNormSuffix(currentStatus: { aasta: number }, companyForecast: { aasta: number }): '_UUS' | '_VANA' {
         if (currentStatus.aasta === companyForecast.aasta) {
             return '_VANA';
         } else if (currentStatus.aasta < companyForecast.aasta) {
             return '_UUS';
         } else {
-            throw new Error("No normalization table found.");
+            throw new Error("Unable to choose normSuffix");
         }
     }
-
 }
 
