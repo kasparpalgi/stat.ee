@@ -1,6 +1,4 @@
 import express, { Request, Response } from 'express';
-import { sendError } from './application';
-import { ReasonPhrases } from 'http-status-codes';
 import handleCompanyId from './application/routes/eestat/1/elujoud/id';
 
 require('dotenv').config();
@@ -17,11 +15,11 @@ app.get('/eestat/1/elujoud/:id', async (req: Request, res: Response) => handleCo
  * @return 200 - Success - application/json
  * @tags General
  */
-app.get('/healthz', (_req, res) => res.json(ReasonPhrases.OK));
+app.get('/healthz', (_req, res) => res.status(200).json({ status: 'ok' }));
 
 // all other routes should throw 404 not found
 app.use('*', (_req, res) => {
-    return sendError(res, 'route-not-found');
+    return 
 });
 
 app.listen(port, () => {

@@ -3,7 +3,7 @@ import { ModelService } from '../../../../../application';
 import { CompanyRepository, NormMonthlyRepository } from '../../../../../infrastructure';
 import { logRequestError, logRequestSuccess } from '../../../../logger';
 import { randomUUID } from 'crypto';
-import { handleErrors } from '../../../../error_mapper';
+import { handleErrors } from '../../../../utils/errors';
 
 /**
 * Handles the prognosing for a given company ID.

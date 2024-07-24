@@ -1,0 +1,8 @@
+services:
+  stat-ee:
+    image: stat-ee:latest
+    ports:
+      - '3000:3000'
+    env_file: ".env"
+    volumes:
+      - ./models:/home/appuser/stat-ee/models

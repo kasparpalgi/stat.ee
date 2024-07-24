@@ -15,9 +15,11 @@
     "convert": "npm run build && node dist/src/converter.js",
     "ts-coverage": "typescript-coverage-report",
     "dev": "tsc && node dist/src/app.js",
+    "docker": "npm run docker:build && npm run docker:save",
     "docker:build": "docker build -t stat-ee:latest .",
     "docker:save": "docker save -o stat-ee.tar stat-ee:latest",
-    "docker": "npm run docker:build && npm run docker:save"
+    "docker:dev": "npm run docker:build && npm run docker:run",
+    "docker:run": "docker run -d -p 3000:3000 -v $(pwd)/models:/home/appuser/stat-ee/models stat-ee:latest"
   },
   "repository": {
     "type": "git",
@@ -31,17 +33,13 @@
   "homepage": "https://github.com/crewnew/stat-ee#readme",
   "dependencies": {
     "@tensorflow/tfjs-node": "^4.20.0",
-    "@types/oracledb": "^6.5.1",
     "oracledb": "^6.5.1",
     "ts-jackson": "^1.6.0",
-    "tslib": "^2.6.2",
-    "http-status-codes": "^2.3.0",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "dotenv": "^16.4.5",
+    "tslib": "^2.6.2"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/node": "^20.12.7",
-    "dotenv": "^16.4.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }

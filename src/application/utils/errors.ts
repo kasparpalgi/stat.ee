@@ -1,120 +1,125 @@
-import { NextFunction, Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
+import { Response, Request } from 'express';
+import { nullApiResponse } from '../../domain';
+
+export function handleErrors(req: Request, res: Response, err: Error, correlationID: String): void {
+    let message: Record<string, any>;
+    let statusCode: number;
+    switch (err.message) {
+        case "Company not found":
+            statusCode = 404;
+            message = {
+                request_id: correlationID,
+                statusCode: statusCode, status: 'error',
+                error: {
+                    code: "company-not-found",
+                    message: "Company not found.",
+                    details: "The requested company could not be located in the system.",
+                    timestamp: new Date().toISOString(),
+                    path: req.path,
+                    suggestion: "The company ID may be incorrect. Please verify the ID and try again."
+                }
+            };
+            break;
+        case "Yearly data not found":
+        case "Monthly data not found":
+            statusCode = 404;
+            message = {
+                request_id: correlationID,
+                statusCode: statusCode, status: 'error',
+                error: {
+                    code: "data-not-found",
+                    message: "Monthly/Yearly data not found.",
+                    details: "The requested monthly or yearly data could not be located.",
+                    timestamp: new Date().toISOString(),
+                    path: req.path,
+                    suggestion: "The data may not exist for the specified month or year. There may be a temporary issue with data access. Please try again later."
+                }
+            };
+            break;
+        case "ID must be an 8-digit number":
+            statusCode = 400;
+            message = {
+                request_id: correlationID,
+                statusCode: 400, status: 'error',
+                error: {
+                    code: "invalid-id-format",
+                    message: "Invalid ID format.",
+                    details: "The provided ID must be an 8-digit number.",
+                    timestamp: new Date().toISOString(),
+                    path: req.path,
+                    suggestion: "Please enter an ID consisting of exactly 8 digits."
+                }
+            };
+            break;
+        case "Cluster is not valid":
+            statusCode = 404;
+            message = {
+                request_id: correlationID,
+                statusCode: statusCode,
+                status: 'error',
+                error: {
+                    code: "invalid-cluster",
+                    message: "Invalid cluster provided.",
+                    details: "The specified cluster is not valid. The cluster 'muu' is not supported.",
+                    timestamp: new Date().toISOString(),
+                    path: req.path,
+                    suggestion: "Double-check if the provided cluster is not 'muu'. If the issue persists, contact the system administrator.",
+                }
+            };
+            break;
+        case 'Number of missing properties exceeds the limit':
+            statusCode = 400;
+            message = {
+                request_id: correlationID,
+                statusCode: statusCode, status: 'error',
+                error: {
+                    code: "bad-request", message: "Request exceeds allowed number of missing properties.",
+                    details: "The provided data object has more missing properties than the allowed limit.",
+                    timestamp: new Date().toISOString(),
+                    path: req.path,
+                    suggestion: "Please review the required properties and ensure all necessary data is provided."
+                }
+            };
+            break;
+        case 'Monthly MEA not found':
+        case 'Monthly SDS not found':
+        case 'Yearly SDS not found':
+        case 'Yearly MEA not found':
+            statusCode = 404;
+            message = {
+                request_id: correlationID,
+                statusCode: statusCode, status: 'error',
+                error: {
+                    code: "not-found",
+                    details: "The requested monthly Mean Equivalent Assets (MEA) data could not be located.",
+                    timestamp: new Date().toISOString(),
+                    path: req.path,
+                    suggestion: "The data may not exist for the specified month or year. There may be a temporary issue with data access. Please try again later. If possible, consult the relevant documentation for details."
+                }
+            };
+            break;
+        case 'Unable to choose normSuffix':
+        default:
+            statusCode = 500;
+            message = {
+                request_id: correlationID,
+                statusCode: statusCode, status: 'error',
+                error: {
+                    code: "internal-error",  // Use a generic code for unspecified errors
+                    message: err.message,  // Capture the original error message
+                    details: "An unexpected error occurred.",
+                    timestamp: new Date().toISOString(),
+                    path: req.path
+                }
+            };
+            break;
 
 
-export type ErrorPayload = {
-    error: string;
-    status: StatusCodes;
-    message: string;
-};
-
-export const REQUEST_VALIDATION_ERROR: ErrorPayload = {
-    status: StatusCodes.BAD_REQUEST,
-    error: 'invalid-request',
-    message: 'The request payload is incorrect',
-};
-
-const asErrors = <T>(et: {
-    [K in keyof T]: Pick<ErrorPayload, 'status' | 'message'> & {
-        /**
-         * Determines if the error can leak information about users to attackers.
-         */
-        sensitive?: boolean;
-    };
-}) => et;
-
-export const ERRORS = asErrors({
-    'bad-request': {
-        status: StatusCodes.BAD_REQUEST,
-        message: 'Bad Request',
-    },
-    'route-not-found': {
-        status: StatusCodes.NOT_FOUND,
-        message: 'Route not found',
-    },
-    'disabled-endpoint': {
-        status: StatusCodes.CONFLICT,
-        message: 'This endpoint is disabled',
-    },
-    'invalid-request': {
-        status: StatusCodes.BAD_REQUEST,
-        message: 'The request payload is incorrect',
-    },
-    'company-not-found': {
-        status: StatusCodes.BAD_REQUEST,
-        message: 'Ettevõtet ei leitud.',
-    },
-    'cluster-not-found': {
-        status: StatusCodes.NOT_FOUND,
-        message: 'Klaster muu.',
-    },
-    'forbidden': {
-        status: StatusCodes.FORBIDDEN,
-        message: 'Forbidden',
-    },
-    'forbidden-endpoint-in-production': {
-        status: StatusCodes.BAD_REQUEST,
-        message: 'This endpoint is only available on test environments',
-    },
-    'internal-error': {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        message: 'Internal server error',
-    },
-    'insufficient-data': {
-        status: StatusCodes.BAD_REQUEST,
-        message: 'Ennustust ei tee, andmed puudulikud',
-    
     }
-});
 
-export const sendError = (
-    res: Response,
-    code: keyof typeof ERRORS,
-    {
-        customMessage,
-        redirectTo,
-    }: { customMessage?: string; redirectTo?: string } = {},
-    forwardRedirection?: boolean
-) => {
-    const error = ERRORS[code];
-    const message = customMessage ?? error.message;
-    const status = error.status;
+    const emptyResponse = nullApiResponse();
+    res.setHeader('X-Error-Info', JSON.stringify(message));
+    res.status(statusCode).json(emptyResponse);
 
-    return res.status(status).json({
-        description: message,
-    });
-};
-
-/**
- * This is a custom error middleware for Express.
- * https://expressjs.com/en/guide/error-handling.html
- */
-export async function serverErrors(
-    error: Error,
-    _req: Request,
-    res: Response,
-    // * See: https://stackoverflow.com/a/61464426
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _next: NextFunction
-): Promise<unknown> {
-    return sendError(res, 'internal-error', {
-        customMessage: JSON.stringify({
-            message: error.message || 'An unknown error occurred',
-            stack: error.stack,
-        }),
-    });
+    return;
 }
-
-export const sendUnspecifiedError = (res: Response, e: unknown) => {
-    const error = e as Error;
-    if (error.message in ERRORS) {
-        return sendError(res, error.message as keyof typeof ERRORS);
-    } else {
-        return sendError(res, 'internal-error', {
-            customMessage: JSON.stringify({
-                message: error.message || 'An unknown error occurred',
-                stack: error.stack,
-            }),
-        });
-    }
-};
