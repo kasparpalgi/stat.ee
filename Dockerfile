@@ -60,7 +60,8 @@ RUN npm rebuild @tensorflow/tfjs-node --build-from-source
 
 # Use volumes for the certs directory
 VOLUME ["/home/appuser/stat-ee/certs"]
-
+# Use volumes for the models directory
+VOLUME ["/home/appuser/stat-ee/models"]
 # Set user before running further commands
 USER appuser
 
