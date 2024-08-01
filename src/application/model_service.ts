@@ -2,10 +2,11 @@ import * as tf from "@tensorflow/tfjs-node";
 import { ModelIndicator } from "../domain/model_indicator";
 import { PredictionResponse } from "../domain";
 import { Prediction } from "../domain";
-import { port } from "../app";
 
 import { NormYearlyRepository, NormMonthlyRepository, Company, CompanyYear, YearlyCluster, MonthlyCluster } from "../infrastructure";
+import { logModelLoadError } from "./logger";
 
+import path from "path";
 /**
  * Represents a service for working with yearly models.
  */
@@ -28,14 +29,21 @@ export class ModelService {
     cluster: string,
     model: ModelIndicator
   ): Promise<tf.LayersModel> {
-    return tf.loadLayersModel(
-      `http://localhost:${port}` +
-      "/static/" +
-      model +
-      "_" +
-      cluster +
-      "/model.json"
-    );
+    try {
+      const rootDir = process.cwd();
+      const path = rootDir + "/models/" + model + "_" + cluster + "/model.json";
+      const fileSystem = tf.io.fileSystem(path);
+      if (!fileSystem) {
+        throw new Error('Model does not exist in the specified path.');
+      }
+      // Load the model from the local file system.
+      // The model is stored in the /models directory.
+      return tf.loadLayersModel(fileSystem);
+    } catch (error) {
+      console.error(error);
+      logModelLoadError(cluster, model, error.message);
+      throw new Error('TensorFlow model could not be loaded.');
+    }
   }
 
 

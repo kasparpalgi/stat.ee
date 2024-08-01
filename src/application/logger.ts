@@ -1,7 +1,29 @@
 import { randomUUID } from "crypto";
+import { ModelIndicator } from "src/domain/model_indicator";
+
+import dotenv from 'dotenv';
+
+dotenv.config();
+const { LOG_LEVEL } = process.env;
 
 function logToStdout( message: QueryLog | RequestLog) {
-    // process.stdout.write(JSON.stringify(message) + '\n');
+    if (LOG_LEVEL === 'debug') {
+        //
+    } else {
+        process.stdout.write(JSON.stringify(message) + '\n');
+    }
+}
+
+export function logModelLoadError(cluster: string, model: ModelIndicator, error_message: string) {
+    logToStdout({
+        id: randomUUID(),
+        timestamp: new Date().toISOString(),
+        severity: 'ERROR',
+        event_code: 500,
+        event_type: 'error',
+        error_message: error_message,
+        additional_info: `Cannot load model for cluster ${cluster} and model ${model}.`,
+    });
 }
 
 export function logRequestError(request_id: string, error_message: string) {

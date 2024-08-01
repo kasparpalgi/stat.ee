@@ -9,6 +9,6 @@ export function checkMissingProperties<T>(obj: T,limit: number): void {
 
 export function checkExists<T>(obj: T): void {
     if (obj === null || obj === undefined) {
-        throw new Error(`Object does not exist`);
+        throw new Error(`Does not exist`);
     }
 }

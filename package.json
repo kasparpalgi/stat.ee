@@ -1,8 +1,8 @@
 {
   "name": "stat-ee",
-  "version": "1.0.0+6",
+  "version": "1.0.0+8",
   "description": "",
-  "main": "src/index.ts",
+  "main": "src/app.ts",
   "directories": {
     "doc": "docs",
     "example": "example"
@@ -12,14 +12,14 @@
     "test": "jest",
     "watch:build": "tsc --watch",
     "build": "tsc",
-    "convert": "npm run build && node dist/src/converter.js",
     "ts-coverage": "typescript-coverage-report",
     "dev": "tsc && node dist/src/app.js",
     "docker": "npm run docker:build && npm run docker:save",
     "docker:build": "docker build -t stat-ee:latest .",
     "docker:save": "docker save -o stat-ee.tar stat-ee:latest",
     "docker:dev": "npm run docker:build && npm run docker:run",
-    "docker:run": "docker run -d -p 3000:3000 -v $(pwd)/models:/home/appuser/stat-ee/models stat-ee:latest"
+    "docker:run": "docker run -d -p 80:80 --env-file .env stat-ee:latest",
+    "lint": "eslint --fix ."
   },
   "repository": {
     "type": "git",
@@ -33,14 +33,15 @@
   "homepage": "https://github.com/crewnew/stat-ee#readme",
   "dependencies": {
     "@tensorflow/tfjs-node": "^4.20.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "https": "^1.0.0",
     "oracledb": "^6.5.1",
     "ts-jackson": "^1.6.0",
-    "express": "^4.19.2",
-    "dotenv": "^16.4.5",
     "tslib": "^2.6.2"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.4"
   }
 }

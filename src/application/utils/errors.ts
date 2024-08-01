@@ -1,18 +1,18 @@
 import { Response, Request } from 'express';
 import { nullApiResponse } from '../../domain';
 
-export function handleErrors(req: Request, res: Response, err: Error, correlationID: String): void {
+export function handleErrors(req: Request, res: Response, err: Error, correlationID: string): void {
     let message: Record<string, any>;
     let statusCode: number;
     switch (err.message) {
-        case "Company not found":
+        case "ID not found":
             statusCode = 404;
             message = {
                 request_id: correlationID,
                 statusCode: statusCode, status: 'error',
                 error: {
                     code: "company-not-found",
-                    message: "Company not found.",
+                    message: "ID not found.",
                     details: "The requested company could not be located in the system.",
                     timestamp: new Date().toISOString(),
                     path: req.path,
@@ -22,6 +22,7 @@ export function handleErrors(req: Request, res: Response, err: Error, correlatio
             break;
         case "Yearly data not found":
         case "Monthly data not found":
+        case "Data does not exist":
             statusCode = 404;
             message = {
                 request_id: correlationID,

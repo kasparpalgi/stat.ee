@@ -1,6 +1,14 @@
 # Stage 1: Build
-# Use an official Node.js runtime as a parent image
-FROM node:20.15-buster as builder
+FROM node:lts-buster-slim as builder
+
+# Install necessary packages for TensorFlow.js and glibc compatibility
+RUN apt-get update && \ 
+    apt-get install -y build-essential \
+    wget \
+    python3 \
+    make \
+    gcc \ 
+    libc6-dev 
 
 # Set the working directory inside the builder stage
 WORKDIR /home/appuser/build
@@ -11,7 +19,7 @@ COPY package.json package-lock.json* ./
 # Install dependencies including 'devDependencies'
 # Necessary for building the project
 RUN npm install
-# Rebuild Tensorflow
+# Rebuild TensorFlow
 RUN npm rebuild @tensorflow/tfjs-node --build-from-source
 # Copy the application source code
 COPY . .
@@ -21,21 +29,37 @@ RUN npm run build
 
 # Stage 2: Production image
 # Start with a clean image
-FROM node:20.15-buster
+FROM node:lts-buster-slim
+
+# Install glibc for compatibility
+RUN apt-get update && \ 
+    apt-get install -y build-essential \
+    wget \
+    python3 \
+    make \
+    gcc \ 
+    libc6-dev 
 
 # Create a group and user with specified UID and GID
-RUN groupadd -r appgroup -g 1001 && useradd -r -g appgroup -u 1001 -m appuser
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup --home /home/appuser appuser
 
 # Set the working directory inside the container
 WORKDIR /home/appuser/stat-ee
 
-
 # Copy only the built artifacts from the build stage
-COPY --from=builder --chown=appuser:appgroup /home/appuser/build/dist ./dist
-# Copy only the node_modules
-COPY --from=builder --chown=appuser:appgroup /home/appuser/build/node_modules ./node_modules
-# Copy only the models 
-COPY --from=builder --chown=appuser:appgroup /home/appuser/build/models ./models
+COPY --from=builder /home/appuser/build/dist ./dist
+
+# Copy the package.json and package-lock.json to the production image
+COPY --from=builder /home/appuser/build/package.json /home/appuser/build/package-lock.json ./
+
+# Install only production dependencies
+RUN npm install --only=production
+
+# Rebuild TensorFlow
+RUN npm rebuild @tensorflow/tfjs-node --build-from-source
+
+# Use volumes for the certs directory
+VOLUME ["/home/appuser/stat-ee/certs"]
 
 # Set user before running further commands
 USER appuser

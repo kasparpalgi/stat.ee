@@ -2,7 +2,6 @@ import { dbQuery } from "./database/oracle";
 import { MonthlyCluster } from "./models";
 import { NormalisationRepository } from "./repository";
 import { checkExists, checkMissingProperties, convertKeysToLowerCase } from "./../application";
-import { logQueryError, logQuerySuccess } from "../application";
 
 export class NormMonthlyRepository implements NormalisationRepository<MonthlyCluster> {
     /**
@@ -11,8 +10,8 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
      * @returns A promise that resolves to the monthly cluster data.
      * 
      * 
-     * @throws {Error('Number of missing properties exceeds the limit')},
-     * @throws {Error('Object does not exist')}
+     * @throws {Error('Number of missing properties exceeds the limit')},§
+     * @throws {Error('Does not exist')}
      */
     async getMonthly(id: string, correlationID: string): Promise<MonthlyCluster | null> {
         const query = `
@@ -23,17 +22,18 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
         `;
         try {
             const response = await dbQuery(query, { kood: id }, correlationID);
+            checkExists(response);
             const monthly = MonthlyCluster.deserialize(response).clamp();
             checkMissingProperties(monthly, 3);
-            checkExists(monthly);
             return monthly;
         } catch (error) {
             switch (error.message) {
                 case 'Number of missing properties exceeds the limi':
                     throw new Error('Number of missing properties exceeds the limi');
-                case 'Object does not exist':
+                case 'Does not exist':
+                    throw new Error('Monthly data does not exist');
                 default:
-                    throw new Error('Monthly data not found');
+                    throw new Error('Failed to retrieve monthly data');
             }
             
         }
@@ -51,7 +51,7 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
             const response = await dbQuery(query, { klaster }, correlationID);
             const formattedResponse = convertKeysToLowerCase(response);
             return MonthlyCluster.deserialize(formattedResponse).clamp();
-        } catch (error) {
+        } catch  {
             throw Error('Monthly SDS not found');
         }
     }
@@ -67,7 +67,7 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
             const response = await dbQuery(query, { klaster }, correlationID);
             const formattedResponse = convertKeysToLowerCase(response);
             return MonthlyCluster.deserialize(formattedResponse).clamp();
-        } catch (error) {
+        } catch {
             throw Error('Monthly MEA not found');
         }
     }

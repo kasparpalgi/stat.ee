@@ -1,10 +1,8 @@
-import { logQueryError, logQuerySuccess } from "../application";
 import { dbQuery } from "./database/oracle";
-import { Company, YearlyCluster, CompanyYear, MonthlyCluster } from "./models";
-import { DataRepository } from "./repository";
+import { Company, YearlyCluster, CompanyYear } from "./models";
 
 
-export class CompanyRepository implements DataRepository<CompanyYear> {
+export class CompanyRepository  {
     /** 
     * Retrieves the current status of a company.
     * @param id - The company identifier.
@@ -43,7 +41,7 @@ export class CompanyRepository implements DataRepository<CompanyYear> {
                 case "Cluster is not valid":
                     throw new Error("Cluster is not valid");
                 default:
-                    throw new Error("Company not found");
+                    throw new Error("ID not found");
             }
         }
     }
@@ -74,7 +72,7 @@ export class CompanyRepository implements DataRepository<CompanyYear> {
                 case "Yearly data not found":
                     throw new Error("Yearly data not found");
                 default:
-                    throw new Error("Company not found");
+                    throw new Error("ID not found");
             }
         }
     }

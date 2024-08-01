@@ -2,7 +2,8 @@ services:
   stat-ee:
     image: stat-ee:latest
     ports:
-      - '3000:3000'
+      - '${PORT}:${PORT}'
     env_file: ".env"
     volumes:
+      - ./certs:/home/appuser/stat-ee/certs
       - ./models:/home/appuser/stat-ee/models
