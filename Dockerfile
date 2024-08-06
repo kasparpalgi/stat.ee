@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:lts-buster-slim as builder
+FROM node:lts-bookworm-slim as builder
 
 # Install necessary packages for TensorFlow.js and glibc compatibility
 RUN apt-get update && \ 
@@ -29,7 +29,7 @@ RUN npm run build
 
 # Stage 2: Production image
 # Start with a clean image
-FROM node:lts-buster-slim
+FROM node:lts-bookworm-slim
 
 # Install glibc for compatibility
 RUN apt-get update && \ 

@@ -6,7 +6,7 @@
 
 #### Routes
 ```http
-GET /eestat/1/elujoud/:id - Get the compani reg. number
+GET /eestat/1/elujoud/:id - Get the company registration number
 ```
 
 ### Prediction Model Assignments
