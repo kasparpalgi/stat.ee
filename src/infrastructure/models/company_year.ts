@@ -13,4 +13,5 @@ export interface CompanyYear {
     company: Company;
     year: YearlyCluster;
     normSuffix?: '_UUS' | '_VANA';
+    yearNumber: number;
 }

@@ -1,5 +1,5 @@
 import { Response, Request } from 'express';
-import { nullApiResponse } from '../../domain';
+import { buildNullResponse } from '../../application/build_response';
 
 export function handleErrors(req: Request, res: Response, err: Error, correlationID: string): void {
     let message: Record<string, any>;
@@ -118,7 +118,7 @@ export function handleErrors(req: Request, res: Response, err: Error, correlatio
 
     }
 
-    const emptyResponse = nullApiResponse();
+    const emptyResponse = buildNullResponse();
     res.setHeader('X-Error-Info', JSON.stringify(message));
     res.status(statusCode).json(emptyResponse);
 
