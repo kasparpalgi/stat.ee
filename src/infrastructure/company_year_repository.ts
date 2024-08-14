@@ -4,12 +4,11 @@ import { Company, YearlyCluster, CompanyYear } from "./models";
 
 export class CompanyRepository  {
     /** 
-    * Retrieves the current status of a company.
     * @param id - The company identifier.
-    * @returns A promise that resolves to the current status of the company.
+    * @returns A promise that resolves to the latest year of a comapnay
     * @throws {Error('Cluster is not valid')} - If the cluster is 'muu'.
     **/
-    async getCompanyCurrentStatus(id: string, correlationID: string): Promise<Company> {
+    async getLatestYear(id: string, correlationID: string): Promise<Company> {
         const query = `
             WITH Filtered AS (
                 SELECT *
@@ -46,7 +45,7 @@ export class CompanyRepository  {
         }
     }
 
-    async getCompanyYear(company: Company, correlationID: string): Promise<CompanyYear> {
+    async getYear(company: Company, correlationID: string): Promise<CompanyYear> {
         const query = `
         SELECT *
                 FROM "ELUJOULISUSEINDEKS"."AASTASED"
