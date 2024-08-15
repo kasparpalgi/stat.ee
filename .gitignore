@@ -14,3 +14,4 @@ install-manifests/docker-run/certs/*
 install-manifests/docker-compose/models/*
 install-manifests/docker-compose/certs/*
 
+action/*

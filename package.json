@@ -1,6 +1,6 @@
 {
   "name": "stat-ee",
-  "version": "1.0.0+10",
+  "version": "1.0.0+12",
   "description": "",
   "main": "src/app.ts",
   "directories": {
@@ -11,7 +11,8 @@
     "start": "node dist/src/app.js",
     "test": "jest",
     "watch:build": "tsc --watch",
-    "build": "tsc",
+    "pack": "ncc build ./src/app.ts --out dist --license licenses.txt",
+    "build": "ncc build ./src/app.ts --out dist --source-map",
     "ts-coverage": "typescript-coverage-report",
     "dev": "tsc && node dist/src/app.js",
     "docker": "npm run docker:build && npm run docker:save",

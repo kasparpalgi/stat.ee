@@ -1,10 +1,12 @@
 import OracleDB, { BindParameters } from 'oracledb';
 import { logQueryError, logQuerySuccess, replaceNaWith0 } from '../../application';
 import dotenv from 'dotenv';
+import path from 'path';
+import * as fs from 'fs';
 
 dotenv.config();
 
-let { ORACLE_USER, ORACLE_PASSWORD, ORACLE_CONNECT_STRING } = process.env;
+let { ORACLE_USER, ORACLE_PASSWORD, ORACLE_CONNECT_STRING, ORACLE_CERT_DN } = process.env;
 
 
 export async function dbQuery(textQuery: string, variables: BindParameters,correlationID: string ): Promise<any> {
@@ -30,6 +32,8 @@ export default class DatabaseConnection {
         user: ORACLE_USER,
         password: ORACLE_PASSWORD,
         connectString: ORACLE_CONNECT_STRING,
+        sslServerCert: caCertificate(),
+        sslServerCertDN: ORACLE_CERT_DN,
     };
 
     public async init(): Promise<void> {
@@ -54,5 +58,19 @@ export default class DatabaseConnection {
                 console.error(err.message);
             }
         });
+    }
+}
+
+
+export function caCertificate(): string {
+    try {
+        // Path to SSL certificate and key
+        const certificatePath = path.join(process.cwd(), 'certs', 'ca.pem');
+        console.log(`Reading SSL certificate and key...`);
+        // Read SSL certificate and key
+        const certificate = fs.readFileSync(certificatePath, 'utf8');
+        return certificate;
+    } catch {
+        throw new Error('SSL certificate not found');
     }
 }

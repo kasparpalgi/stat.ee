@@ -18,6 +18,7 @@
      certs/
      ├── cert.pem
      └── key.pem
+     └── ca.pem
      ```
    
 2. **Add TensorFlow Models**  
