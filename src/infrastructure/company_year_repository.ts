@@ -56,7 +56,7 @@ export class CompanyRepository  {
         `;
         try {
             const result = await dbQuery(query, { jykood: company.jykood },correlationID);
-            const yearNumber = JSON.parse(result).aasta;
+            const yearNumber = result.aasta;
             const forecastCompany = Company.deserialize(result);
             const forecastYear = YearlyCluster.deserialize(result);
             if (forecastCompany === null || forecastYear === null) {
