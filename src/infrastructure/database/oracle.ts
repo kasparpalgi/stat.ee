@@ -32,7 +32,7 @@ export default class DatabaseConnection {
         user: ORACLE_USER,
         password: ORACLE_PASSWORD,
         connectString: ORACLE_CONNECT_STRING,
-        sslServerCert: caCertificate(),
+        sslServerCert: ORACLE_CERT_DN !== undefined ? caCertificate() : undefined,
         sslServerCertDN: ORACLE_CERT_DN,
     };
 
@@ -64,9 +64,9 @@ export default class DatabaseConnection {
 
 export function caCertificate(): string {
     try {
+        console.log('Reading SSL certificate');
         // Path to SSL certificate and key
         const certificatePath = path.join(process.cwd(), 'certs', 'ca.pem');
-        console.log(`Reading SSL certificate and key...`);
         // Read SSL certificate and key
         const certificate = fs.readFileSync(certificatePath, 'utf8');
         return certificate;

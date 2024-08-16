@@ -34,6 +34,7 @@ export class CompanyRepository  {
             }
             return Company.deserialize(response);
         } catch (error) {
+            console.log(error);
             switch (error.message) {
                 case "ID must be an 8-digit number":
                     throw new Error("ID must be an 8-digit number");

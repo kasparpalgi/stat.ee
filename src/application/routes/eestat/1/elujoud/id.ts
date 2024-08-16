@@ -4,7 +4,7 @@ import { CompanyRepository as YearRepository, dbQuery, NormMonthlyRepository } f
 import { logRequestError, logRequestSuccess } from '../../../../logger';
 import { randomUUID } from 'crypto';
 import { handleErrors } from '../../../../utils/errors';
-import { buildNullResponse, buildSuccess } from 'src/application/build_response';
+import { buildSuccess } from '../../../../build_response';
 
 /**
 * Handles the prognosing for a given company ID.
