@@ -1,7 +1,7 @@
 import { dbQuery } from "./database/oracle";
 import { MonthlyCluster } from "./models";
 import { NormalisationRepository } from "./repository";
-import { checkExists, checkMissingProperties, convertKeysToLowerCase } from "./../application";
+import { checkExists, checkMissingProperties, convertKeysToLowerCase, debugLogError } from "./../application";
 
 export class NormMonthlyRepository implements NormalisationRepository<MonthlyCluster> {
     /**
@@ -27,6 +27,7 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
             checkMissingProperties(monthly, 3);
             return monthly;
         } catch (error) {
+            debugLogError(error);
             switch (error.message) {
                 case 'Number of missing properties exceeds the limi':
                     throw new Error('Number of missing properties exceeds the limi');
@@ -51,7 +52,8 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
             const response = await dbQuery(query, { klaster }, correlationID);
             const formattedResponse = convertKeysToLowerCase(response);
             return MonthlyCluster.deserialize(formattedResponse).clamp();
-        } catch  {
+        } catch (error)  {
+            debugLogError(error);
             throw Error('Monthly SDS not found');
         }
     }
@@ -67,7 +69,8 @@ export class NormMonthlyRepository implements NormalisationRepository<MonthlyClu
             const response = await dbQuery(query, { klaster }, correlationID);
             const formattedResponse = convertKeysToLowerCase(response);
             return MonthlyCluster.deserialize(formattedResponse).clamp();
-        } catch {
+        } catch (error) {
+            debugLogError(error);
             throw Error('Monthly MEA not found');
         }
     }

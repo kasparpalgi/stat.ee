@@ -61,6 +61,6 @@ Execute the script:
 
 `./build-docker.sh`
 
-Using a single command:
+Or using a single command:
 
 `docker build -t stat-ee:latest . && docker save -o stat-ee.tar stat-ee:latest`

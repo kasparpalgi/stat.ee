@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { ModelService } from '../../../../../application';
 import { CompanyRepository as YearRepository, dbQuery, NormMonthlyRepository } from '../../../../../infrastructure';
-import { logRequestError, logRequestSuccess } from '../../../../logger';
+import { debugLogError, logRequestError, logRequestSuccess } from '../../../../logger';
 import { randomUUID } from 'crypto';
 import { handleErrors } from '../../../../utils/errors';
 import { buildSuccess } from '../../../../build_response';
@@ -40,9 +40,10 @@ export default async function handleCompanyId(req: Request, res: Response): Prom
         logRequestSuccess(correlationID, response);
         res.status(200).json(response);
         return;
-    } catch (e) {
-        logRequestError(correlationID, e.message);
-        handleErrors(req, res, e, correlationID);
+    } catch (error) {
+        debugLogError(error);
+        logRequestError(correlationID, error.message);
+        handleErrors(req, res, error, correlationID);
         return;
     }
 }

@@ -6,12 +6,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 const { LOG_LEVEL } = process.env;
 
-function logToStdout( message: QueryLog | RequestLog) {
+export function debugLogError(exception ?: any) {
     if (LOG_LEVEL === 'debug') {
-        //
-    } else {
-        process.stdout.write(JSON.stringify(message) + '\n');
+        console.log(exception);
     }
+}
+
+function logToStdout( message: QueryLog | RequestLog) {
+    
+    process.stdout.write(JSON.stringify(message) + '\n');
 }
 
 export function logModelLoadError(cluster: string, model: ModelIndicator, error_message: string) {

@@ -1,6 +1,7 @@
 import { dbQuery } from "./database/oracle";
 import { YearlyCluster } from "./models";
 import { NormalisationRepository as NormalisationRepository } from "./repository";
+import { debugLogError } from "../application";
 
 
 export class NormYearlyRepository implements NormalisationRepository<YearlyCluster> {
@@ -14,7 +15,8 @@ export class NormYearlyRepository implements NormalisationRepository<YearlyClust
         try {
             const response = await dbQuery(query, { klaster }, correlationID);
             return YearlyCluster.deserialize(response).clamp();
-        } catch {
+        } catch (error) {
+            debugLogError(error);
             throw Error('Yearly SDS not found');
         }
     }
@@ -29,7 +31,8 @@ export class NormYearlyRepository implements NormalisationRepository<YearlyClust
         try {
             const response = await dbQuery(query, { klaster }, correlationID);
             return YearlyCluster.deserialize(response).clamp();
-        } catch  {
+        } catch (error)  {
+            debugLogError(error);
             throw Error('Yearly MEA not found');
         }
     }

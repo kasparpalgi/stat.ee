@@ -1,5 +1,6 @@
 import { dbQuery } from "./database/oracle";
 import { Company, YearlyCluster, CompanyYear } from "./models";
+import { debugLogError } from "../application";
 
 
 export class CompanyRepository  {
@@ -34,7 +35,7 @@ export class CompanyRepository  {
             }
             return Company.deserialize(response);
         } catch (error) {
-            console.log(error);
+            debugLogError(error);
             switch (error.message) {
                 case "ID must be an 8-digit number":
                     throw new Error("ID must be an 8-digit number");
@@ -70,6 +71,7 @@ export class CompanyRepository  {
                 yearNumber: yearNumber,
             }
         } catch (error) {
+            debugLogError(error);
             switch (error.message) {
                 case "Yearly data not found":
                     throw new Error("Yearly data not found");

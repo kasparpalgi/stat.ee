@@ -1,5 +1,5 @@
 import OracleDB, { BindParameters } from 'oracledb';
-import { logQueryError, logQuerySuccess, replaceNaWith0 } from '../../application';
+import { debugLogError, logQueryError, logQuerySuccess, replaceNaWith0 } from '../../application';
 import dotenv from 'dotenv';
 import path from 'path';
 import * as fs from 'fs';
@@ -18,6 +18,7 @@ export async function dbQuery(textQuery: string, variables: BindParameters,corre
         const json = replaceNaWith0(result.rows[0]);
         return json;
     } catch (error) {
+        debugLogError(error);
         logQueryError(correlationID, textQuery, error);
         throw new Error('Query not found');
     } finally {
@@ -70,7 +71,8 @@ export function caCertificate(): string {
         // Read SSL certificate and key
         const certificate = fs.readFileSync(certificatePath, 'utf8');
         return certificate;
-    } catch {
+    } catch (error) {
+        debugLogError(error);
         throw new Error('SSL certificate not found');
     }
 }

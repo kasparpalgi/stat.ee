@@ -7,27 +7,12 @@ interface BuildResponseParams {
     year: Year
 }
 
-export function buildSuccess(params: BuildResponseParams) {
+export function buildSuccess(params: BuildResponseParams) : ApiResponse {
     const year = params.year;   
     const monthly = params.monthly;
     const prediction = params.prediction;
 
     return {
-        model1y1: prediction.model1y1,
-        model1y2: prediction.model1y2,
-        model1y3: prediction.model1y3,
-        model2y1: prediction.model2y1,
-        model2y2: prediction.model2y2,
-        model2y3: prediction.model2y3,
-        model3y1: prediction.model3y1,
-        model3y2: prediction.model3y2,
-        model3y3: prediction.model3y3,
-        model4y1: prediction.model4y1,
-        model4y2: prediction.model4y2,
-        model4y3: prediction.model4y3,
-        model5y1: prediction.model5y1,
-        model5y2: prediction.model5y2,
-        model5y3: prediction.model5y3,
         AKM: year.akm,
         county: year.maakond,
         Eff_n_Count: year.maakond_efektiivsus_n,
@@ -42,7 +27,7 @@ export function buildSuccess(params: BuildResponseParams) {
         EmppCount: monthly.protsentiil_vald,
         EmppSect: monthly.protsentiil_sektor,
         EmppSize: monthly.protsentiil_suurusgrupp,
-        EMTAK: year.emtak,
+        EMTAK: `${year.emtak}`,
         hoiv: monthly.tor_m_min1,
         IKK: year.ikk,
         KOS: year.kos,
@@ -61,8 +46,24 @@ export function buildSuccess(params: BuildResponseParams) {
         LiqpSize: year.suurusklass_likviidsus_protsen,
         LVKaK: year.lvkak,
         LVKK: year.lvkk,
+        model1y1: prediction.model1y1,
+        model1y2: prediction.model1y2,
+        model1y3: prediction.model1y3,
+        model2y1: prediction.model2y1,
+        model2y2: prediction.model2y2,
+        model2y3: prediction.model2y3,
+        model3y1: prediction.model3y1,
+        model3y2: prediction.model3y2,
+        model3y3: prediction.model3y3,
+        model4y1: prediction.model4y1,
+        model4y2: prediction.model4y2,
+        model4y3: prediction.model4y3,
+        model5y1: prediction.model5y1,
+        model5y2: prediction.model5y2,
+        model5y3: prediction.model5y3,
+        MVK: year.mvk,
         PKM: year.pkm,
-        prognAasta: year.aasta,
+        prognAasta: `${year.aasta}`,
         registrikood: year.jykood,
         Ret_n_Count: year.maakond_tasuvus_n,
         Ret_n_Sect: year.sektor_tasuvus_n,

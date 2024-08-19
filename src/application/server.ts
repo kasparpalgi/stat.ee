@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import dotenv from 'dotenv';
+import { debugLogError } from './logger';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ export function runApp(app: any) {
             runHTTP(app);
         }
     } catch (error) {
+        debugLogError(error);
         if (error.message == 'Exit the application') { 
             console.log('Exiting the application');
          }
@@ -47,6 +49,7 @@ function runHTTPS(app: any) {
             }
         });
     } catch (error) {
+        debugLogError(error);
         if (error.message == 'SSL certificate not found') {
             throw new Error('SSL certificate not found');
         } else {
@@ -66,7 +69,8 @@ function runHTTP(app: any) {
                 console.log(`HTTP server running on port http://localhost:${port}`);
             }
         });
-    } catch  {
+    } catch (error) {
+        debugLogError(error);
         throw new Error('Exit the application');
     }
 }
@@ -83,7 +87,8 @@ export function sslCertificate() {
         const certificate = fs.readFileSync(certificatePath, 'utf8');
 
         return { key: privateKey, cert: certificate };
-    } catch {
+    } catch (error) {
+        debugLogError(error);
         throw new Error('SSL certificate not found');
     }
 }

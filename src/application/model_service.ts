@@ -4,7 +4,7 @@ import { PredictionResponse } from "../domain";
 import { Prediction } from "../domain";
 
 import { NormYearlyRepository, NormMonthlyRepository, Company, CompanyYear, YearlyCluster, MonthlyCluster } from "../infrastructure";
-import { logModelLoadError } from "./logger";
+import { debugLogError, logModelLoadError } from "./logger";
 
 import path from "path";
 /**
@@ -40,7 +40,7 @@ export class ModelService {
       // The model is stored in the /models directory.
       return tf.loadLayersModel(fileSystem);
     } catch (error) {
-      console.error(error);
+      debugLogError(error);
       logModelLoadError(cluster, model, error.message);
       throw new Error('TensorFlow model could not be loaded.');
     }
