@@ -3,7 +3,7 @@ import { CompanyYear, Company as Year, MonthlyCluster, YearlyCluster } from "../
 
 interface BuildResponseParams {
     prediction: PredictionResponse,
-    monthly: MonthlyCluster,
+    monthly: MonthlyCluster | null,
     year: Year
 }
 
@@ -13,6 +13,14 @@ export function buildSuccess(params: BuildResponseParams) : ApiResponse {
     const prediction = params.prediction;
 
     return {
+        Emp_n_Count: monthly?.vald_n,
+        Emp_n_Sect: monthly?.sektor_n,
+        Emp_n_Size: monthly?.suurusgrupp_n,
+        EmppCount: monthly?.protsentiil_vald,
+        EmppSect: monthly?.protsentiil_sektor,
+        EmppSize: monthly?.protsentiil_suurusgrupp,
+        hoiv: monthly?.tor_m_min1,
+        TJT: monthly?.kmd_tsd_min2,
         AKM: year.akm,
         county: year.maakond,
         Eff_n_Count: year.maakond_efektiivsus_n,
@@ -21,14 +29,7 @@ export function buildSuccess(params: BuildResponseParams) : ApiResponse {
         EffpCount: year.maakond_efektiivsus_protsentii,
         EffpSect: year.sektor_efektiivsus_protsentiil,
         EffpSize: year.suurusklass_efektiivsus_protse,
-        Emp_n_Count: monthly.vald_n,
-        Emp_n_Sect: monthly.sektor_n,
-        Emp_n_Size: monthly.suurusgrupp_n,
-        EmppCount: monthly.protsentiil_vald,
-        EmppSect: monthly.protsentiil_sektor,
-        EmppSize: monthly.protsentiil_suurusgrupp,
         EMTAK: `${year.emtak}`,
-        hoiv: monthly.tor_m_min1,
         IKK: year.ikk,
         KOS: year.kos,
         kov: year.kov,
@@ -76,7 +77,6 @@ export function buildSuccess(params: BuildResponseParams) : ApiResponse {
         ROE: year.roe,
         sektorNo: year.sektor_nr,
         size: year.ettevotte_suurusklass,
-        TJT: monthly.kmd_tsd_min2,
         VaKK: year.vakk,
         VK: year.vk,
         VKK: year.vkk,

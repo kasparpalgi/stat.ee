@@ -68,20 +68,6 @@ export function handleErrors(req: Request, res: Response, err: Error, correlatio
                 }
             };
             break;
-        case 'Number of missing properties exceeds the limit':
-            statusCode = 400;
-            message = {
-                request_id: correlationID,
-                statusCode: statusCode, status: 'error',
-                error: {
-                    code: "bad-request", message: "Request exceeds allowed number of missing properties.",
-                    details: "The provided data object has more missing properties than the allowed limit.",
-                    timestamp: new Date().toISOString(),
-                    path: req.path,
-                    suggestion: "Please review the required properties and ensure all necessary data is provided."
-                }
-            };
-            break;
         case 'Monthly MEA not found':
         case 'Monthly SDS not found':
         case 'Yearly SDS not found':

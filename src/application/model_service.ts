@@ -136,8 +136,7 @@ export class ModelService {
     };
   }
 
-  async predictionResponse(company: Company, year: YearlyCluster, monthly: MonthlyCluster,
- correlationID: string): Promise<PredictionResponse> {
+  async predictionResponse(company: Company, year: YearlyCluster, monthly: MonthlyCluster | null, correlationID: string,): Promise<PredictionResponse> {
     const response = new PredictionResponse();
     
     const liquidity = await this.predictIndicator(company, year, monthly, ModelIndicator.Liquidity, correlationID,);
@@ -156,10 +155,13 @@ export class ModelService {
     response.model4y1 = structure.low;
     response.model4y2 = structure.medium;
     response.model4y3 = structure.high;
-    const growth = await this.predictIndicator(company, year, monthly, ModelIndicator.Growth, correlationID);
-    response.model5y1 = growth.low;
-    response.model5y2 = growth.medium;
-    response.model5y3 = growth.high;
+    
+    if (monthly !== null) {
+      const growth = await this.predictIndicator(company, year, monthly, ModelIndicator.Growth, correlationID);
+      response.model5y1 = growth.low;
+      response.model5y2 = growth.medium;
+      response.model5y3 = growth.high;
+    }
 
     return response;
   }
