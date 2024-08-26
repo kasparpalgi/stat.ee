@@ -11,8 +11,9 @@ let { ORACLE_USER, ORACLE_PASSWORD, ORACLE_CONNECT_STRING, ORACLE_CERT_DN } = pr
 
 export async function dbQuery(textQuery: string, variables: BindParameters,correlationID: string ): Promise<any> {
     const connection = new DatabaseConnection();
-    const dbConnect = await connection.connectWithDB();
+    let dbConnect: OracleDB.Connection;
     try {
+        dbConnect = await connection.connectWithDB();
         const result = await dbConnect.execute(textQuery, variables, { outFormat: OracleDB.OUT_FORMAT_OBJECT });
         logQuerySuccess(correlationID, textQuery, result);
         const json = replaceNaWith0(result.rows[0]);
@@ -46,6 +47,7 @@ export default class DatabaseConnection {
             this.oracleDB.getConnection(
                 this.dbConfig, (err: any, connection: any) => {
                 if (err) {
+                    debugLogError(err);
                     reject(err.message);
                 }
                 resolve(connection);
@@ -56,7 +58,7 @@ export default class DatabaseConnection {
     public doRelease(connection) {
         connection.release((err) => {
             if (err) {
-                console.error(err.message);
+                debugLogError(err);
             }
         });
     }
