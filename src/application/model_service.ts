@@ -64,7 +64,10 @@ export class ModelService {
   }
 
   
-  async resolveMonthly(cluster: MonthlyCluster, correlationID: string): Promise<MonthlyCluster> {
+  async resolveMonthly(cluster: MonthlyCluster | null, correlationID: string): Promise<MonthlyCluster | null> {
+    if (cluster === null) {
+      return null;
+    }
     // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
     const mea = await this.monthlyRepository.getMea(cluster.klaster, correlationID);
     const meaSubstracted = cluster.substract(mea);

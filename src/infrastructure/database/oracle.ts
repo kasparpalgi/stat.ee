@@ -23,7 +23,9 @@ export async function dbQuery(textQuery: string, variables: BindParameters,corre
         logQueryError(correlationID, textQuery, error);
         throw new Error('Query not found');
     } finally {
-        new DatabaseConnection().doRelease(dbConnect);
+        if (dbConnect !== undefined) {
+            new DatabaseConnection().doRelease(dbConnect);
+        }
     }
 }
 
