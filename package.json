@@ -1,6 +1,6 @@
 {
   "name": "stat-ee",
-  "version": "1.0.0+17",
+  "version": "1.0.0+19",
   "description": "",
   "main": "src/app.ts",
   "directories": {
