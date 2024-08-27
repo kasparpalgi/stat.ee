@@ -26,7 +26,7 @@ export default async function handleCompanyId(req: Request, res: Response): Prom
         const year = await companyRepository.getLatestYear(id, correlationID);
         // Wiil throw an error if the yearly data is not found.
         const companyYear = await companyRepository.getYear(year, correlationID);
-        // Will throw an error if the monthly data is not found.
+        // Will return null if the monthly data is not found.
         const monthly = await monthlyRepository.getMonthly(id, correlationID);
         
         const monthlyCluster = await modelService.resolveMonthly(monthly, correlationID);
