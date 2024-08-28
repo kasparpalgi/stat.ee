@@ -1,5 +1,5 @@
 export function clamp(value: number, max: number): number {
-        return Math.min(value, max);
+  return Math.min(value, max);
 }
 
 /**
@@ -10,11 +10,11 @@ export function clamp(value: number, max: number): number {
  * @returns The clamped value.
  */
 export function clampBetween(value: number, min: number, max: number): number {
-        if (value < min) {
-                return min;
-        } else if (value > max) {
-                return max;
-        } else {
-                return value;
-        }
+  if (value < min) {
+    return min;
+  } else if (value > max) {
+    return max;
+  } else {
+    return value;
+  }
 }

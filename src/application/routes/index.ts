@@ -1,1 +1,1 @@
-export * from './eestat/1/elujoud';
+export * from "./eestat/1/elujoud";

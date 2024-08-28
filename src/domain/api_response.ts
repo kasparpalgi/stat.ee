@@ -1,75 +1,69 @@
-
-import { JsonProperty, SerializableEntity } from "ts-jackson"
-import { PredictionResponse } from "./prediction_response"
-import { Company, CompanyYear } from "src/infrastructure"
-
-
 export interface ApiResponse {
-    registrikood: string
-    model1y1: number
-    model1y2: number
-    model1y3: number
-    model2y1: number
-    model2y2: number
-    model2y3: number
-    model3y1: number
-    model3y2: number
-    model3y3: number
-    model4y1: number
-    model4y2: number
-    model4y3: number
-    model5y1: number
-    model5y2: number
-    model5y3: number
-    prognAasta: string
-    EMTAK: string
-    sektorNo: number
-    size: number
-    county: number
-    kov: number
-    hoiv: number
-    LVKK: number
-    MVK: number
-    RK: number
-    VaKK: number
-    LVKaK: number
-    VKK: number
-    VK: number
-    KOS: number
-    IKK: number
-    AKM: number
-    PKM: number
-    ROA: number
-    ROE: number
-    TJT: number
-    EffpSect: number
-    Eff_n_Sect: number
-    EffpSize: number
-    Eff_n_Size: number
-    EffpCount: number
-    Eff_n_Count: number
-    LiqpSect: number
-    Liq_n_Sect: number
-    LiqpSize: number
-    Liq_n_Size: number
-    LiqpCount: number
-    Liq_n_Count: number
-    LevpSect: number
-    Lev_n_Sect: number
-    LevpSize: number
-    Lev_n_Size: number
-    LevpCount: number
-    Lev_n_Count: number
-    RetpSect: number
-    Ret_n_Sect: number
-    RetpSize: number
-    Ret_n_Size: number
-    RetpCount: number
-    Ret_n_Count: number
-    EmppSect: number
-    Emp_n_Sect: number
-    EmppSize: number
-    Emp_n_Size: number
-    EmppCount: number
-    Emp_n_Count: number
+  registrikood: string | null;
+  model1y1: number | null;
+  model1y2: number | null;
+  model1y3: number | null;
+  model2y1: number | null;
+  model2y2: number | null;
+  model2y3: number | null;
+  model3y1: number | null;
+  model3y2: number | null;
+  model3y3: number | null;
+  model4y1: number | null;
+  model4y2: number | null;
+  model4y3: number | null;
+  model5y1: number | null;
+  model5y2: number | null;
+  model5y3: number | null;
+  prognAasta: string | null;
+  EMTAK: string | null;
+  sektorNo: number | null;
+  size: number | null;
+  county: number | null;
+  kov: number | null;
+  hoiv: number | null;
+  LVKK: number | null;
+  MVK: number | null;
+  RK: number | null;
+  VaKK: number | null;
+  LVKaK: number | null;
+  VKK: number | null;
+  VK: number | null;
+  KOS: number | null;
+  IKK: number | null;
+  AKM: number | null;
+  PKM: number | null;
+  ROA: number | null;
+  ROE: number | null;
+  TJT: number | null;
+  EffpSect: number | null;
+  Eff_n_Sect: number | null;
+  EffpSize: number | null;
+  Eff_n_Size: number | null;
+  EffpCount: number | null;
+  Eff_n_Count: number | null;
+  LiqpSect: number | null;
+  Liq_n_Sect: number | null;
+  LiqpSize: number | null;
+  Liq_n_Size: number | null;
+  LiqpCount: number | null;
+  Liq_n_Count: number | null;
+  LevpSect: number | null;
+  Lev_n_Sect: number | null;
+  LevpSize: number | null;
+  Lev_n_Size: number | null;
+  LevpCount: number | null;
+  Lev_n_Count: number | null;
+  RetpSect: number | null;
+  Ret_n_Sect: number | null;
+  RetpSize: number | null;
+  Ret_n_Size: number | null;
+  RetpCount: number | null;
+  Ret_n_Count: number | null;
+  EmppSect: number | null;
+  Emp_n_Sect: number | null;
+  EmppSize: number | null;
+  Emp_n_Size: number | null;
+  EmppCount: number | null;
+  Emp_n_Count: number | null;
 }

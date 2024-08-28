@@ -4,7 +4,7 @@ import { ModelIndicator } from "src/domain/model_indicator";
 import dotenv from 'dotenv';
 
 dotenv.config();
-const { LOG_LEVEL } = process.env;
+const { LOG_LEVEL, LOG_REQUEST } = process.env;
 
 export function debugLogError(exception ?: any) {
     if (LOG_LEVEL === 'debug') {
@@ -13,7 +13,9 @@ export function debugLogError(exception ?: any) {
 }
 
 function logToStdout( message: QueryLog | RequestLog) {
-    
+    if (LOG_REQUEST === 'false') {
+        return;
+    }
     process.stdout.write(JSON.stringify(message) + '\n');
 }
 
