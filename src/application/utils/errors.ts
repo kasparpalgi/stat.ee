@@ -11,6 +11,7 @@ export function handleErrors(
   let statusCode: number;
   switch (err.message) {
     case "ID not found":
+      // 404 Not Found for a resource that cannot be located
       statusCode = 404;
       message = {
         request_id: correlationID,
@@ -18,18 +19,19 @@ export function handleErrors(
         status: "error",
         error: {
           code: "company-not-found",
-          message: "ID not found.",
-          details: "The requested company could not be located in the system.",
+          message: "Company not found.",
+          details: "The requested company identifier does not exist in the system.",
           timestamp: new Date().toISOString(),
           path: req.path,
           suggestion:
-            "The company ID may be incorrect. Please verify the ID and try again.",
+            "Verify the company ID. If you believe this is an error, contact support.",
         },
       };
       break;
     case "Yearly data not found":
     case "Monthly data not found":
     case "Data does not exist":
+      // 404 Not Found for specific data unavailability 
       statusCode = 404;
       message = {
         request_id: correlationID,
@@ -37,32 +39,34 @@ export function handleErrors(
         status: "error",
         error: {
           code: "data-not-found",
-          message: "Monthly/Yearly data not found.",
-          details: "The requested monthly or yearly data could not be located.",
+          message: "Requested data not available.",
+          details: "The specific monthly or yearly data could not be located.",
           timestamp: new Date().toISOString(),
           path: req.path,
           suggestion:
-            "The data may not exist for the specified month or year. There may be a temporary issue with data access. Please try again later.",
+            "The data may not exist for the specified period. Verify your request parameters.",
         },
       };
       break;
     case "ID must be an 8-digit number":
-      statusCode = 400;
+      // 422 Unprocessable Content for client-side request formatting errors
+      statusCode = 422;
       message = {
         request_id: correlationID,
-        statusCode: 400,
+        statusCode: statusCode,
         status: "error",
         error: {
-          code: "invalid-id-format",
-          message: "Invalid ID format.",
-          details: "The provided ID must be an 8-digit number.",
+          code: "invalid-request",
+          message: "Invalid request format.",
+          details: "Company ID must be exactly 8 digits.",
           timestamp: new Date().toISOString(),
           path: req.path,
-          suggestion: "Please enter an ID consisting of exactly 8 digits.",
+          suggestion: "Provide a valid 8-digit company identifier.",
         },
       };
       break;
     case "Cluster is not valid":
+      // 404 Not Found for an unsupported cluster
       statusCode = 404;
       message = {
         request_id: correlationID,
@@ -70,13 +74,12 @@ export function handleErrors(
         status: "error",
         error: {
           code: "invalid-cluster",
-          message: "Invalid cluster provided.",
-          details:
-            "The specified cluster is not valid. The cluster 'muu' is not supported.",
+          message: "Cluster not supported.",
+          details: "The specified cluster 'muu' is not a valid cluster.",
           timestamp: new Date().toISOString(),
           path: req.path,
           suggestion:
-            "Double-check if the provided cluster is not 'muu'. If the issue persists, contact the system administrator.",
+            "Select a valid cluster. Contact support for available clusters.",
         },
       };
       break;
@@ -84,37 +87,76 @@ export function handleErrors(
     case "Monthly SDS not found":
     case "Yearly SDS not found":
     case "Yearly MEA not found":
+      // 404 Not Found for specific statistical data unavailability
       statusCode = 404;
       message = {
         request_id: correlationID,
         statusCode: statusCode,
         status: "error",
         error: {
-          code: "not-found",
-          details:
-            "The requested monthly Mean Equivalent Assets (MEA) data could not be located.",
+          code: "statistical-data-not-found",
+          message: "Statistical data unavailable.",
+          details: "Requested statistical metrics could not be located.",
           timestamp: new Date().toISOString(),
           path: req.path,
           suggestion:
-            "The data may not exist for the specified month or year. There may be a temporary issue with data access. Please try again later. If possible, consult the relevant documentation for details.",
+            "Verify data availability for the specific time period and cluster.",
         },
       };
       break;
     case "Unable to choose normSuffix":
-    default:
-      statusCode = 500;
+      // 404 Not Found for normalization suffix determination failure
+      statusCode = 404;
       message = {
         request_id: correlationID,
         statusCode: statusCode,
         status: "error",
         error: {
-          code: "internal-error", // Use a generic code for unspecified errors
-          message: err.message, // Capture the original error message
-          details: "An unexpected error occurred.",
+          code: "normalization-data-not-found",
+          message: "Data normalization failed.",
+          details: "Unable to determine the correct normalization suffix based on the company's year.",
           timestamp: new Date().toISOString(),
           path: req.path,
+          suggestion: "Verify the company's year data. If the issue persists, contact technical support.",
         },
       };
+      break;
+    default:
+      // Differentiate between database/connection errors and other server errors
+      if (err.message.includes("database") || err.message.includes("connection")) {
+        // 503 Service Unavailable for temporary database connectivity issues
+        statusCode = 503;
+        message = {
+          request_id: correlationID,
+          statusCode: statusCode,
+          status: "error",
+          error: {
+            code: "service-unavailable",
+            message: "Database service temporarily unavailable.",
+            details: "The server cannot process the request due to database connectivity issues.",
+            timestamp: new Date().toISOString(),
+            path: req.path,
+            suggestion: "Retry the request after the specified delay. If persistent, contact support.",
+            retryAfter: 300 // seconds, matches the standard Retry-After HTTP header convention
+          },
+        };
+      } else {
+        // 500 Internal Server Error for unhandled server-side errors
+        statusCode = 500;
+        message = {
+          request_id: correlationID,
+          statusCode: statusCode,
+          status: "error",
+          error: {
+            code: "internal-server-error",
+            message: "Unexpected server error.",
+            details: err.message || "An unhandled error occurred during request processing.",
+            timestamp: new Date().toISOString(),
+            path: req.path,
+            suggestion: "This is an unexpected server-side error. Please contact technical support.",
+          },
+        };
+      }
       break;
   }
 
