@@ -1,11 +1,10 @@
 import { dbQuery } from "./database/oracle";
 import { YearlyCluster } from "./models";
 import { NormalisationRepository as NormalisationRepository } from "./repository";
-import { debugLogError } from "../application";
+import { debugLogError } from "../application/logger";
 
 export class NormYearlyRepository
-  implements NormalisationRepository<YearlyCluster>
-{
+  implements NormalisationRepository<YearlyCluster> {
   async getSds(
     klaster: string,
     normSuffix: string,

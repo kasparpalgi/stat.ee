@@ -1,10 +1,7 @@
 import OracleDB, { BindParameters, Connection } from "oracledb";
-import {
-  debugLogError,
-  logQueryError,
-  logQuerySuccess,
-  replaceNaWith0,
-} from "../../application";
+import { replaceNaWith0 } from "../../application";
+import { debugLogError, logQueryError, logQuerySuccess } from "../../application/logger";
+
 import dotenv from "dotenv";
 import path from "path";
 import * as fs from "fs";
@@ -30,8 +27,8 @@ interface OracleConfig {
  */
 const validateOracleConfig = (): OracleConfig => {
   const requiredVars = [
-    'ORACLE_USER', 
-    'ORACLE_PASSWORD', 
+    'ORACLE_USER',
+    'ORACLE_PASSWORD',
     'ORACLE_THICK_CONNECT_STRING'
   ];
 
@@ -39,7 +36,7 @@ const validateOracleConfig = (): OracleConfig => {
 
   if (missingVars.length > 0) {
     const errorMessage = [
-      "🚨 Oracle Database Configuration Security Error 🚨",
+      "Oracle Database Configuration Security Error",
       "Critical configuration variables are missing:",
       ...missingVars.map(v => `- ${v}`),
       "\nSecure Configuration Requirements:",
@@ -84,10 +81,10 @@ const validateOracleConfig = (): OracleConfig => {
 const readCertificate = (): string | undefined => {
   try {
     const certificatePath = path.resolve(process.cwd(), "certs", "ca.pem");
-    
+
     // Enhanced file existence and permission checks
     if (!fs.existsSync(certificatePath)) {
-      debugLogError(`🔒 Security Alert: SSL Certificate not found at: ${certificatePath}`);
+      debugLogError(`Security Alert: SSL Certificate not found at: ${certificatePath}`);
       return undefined;
     }
 
@@ -102,25 +99,25 @@ const readCertificate = (): string | undefined => {
     const stats = fs.statSync(certificatePath);
     const filePermissions = stats.mode & 0o777;
     if (filePermissions !== 0o600) {
-      debugLogError(`🚨 Security Warning: Certificate file permissions are too permissive. Current permissions: ${filePermissions.toString(8)}`);
+      debugLogError(`Security Warning: Certificate file permissions are too permissive. Current permissions: ${filePermissions.toString(8)}`);
     }
 
     const certificate = fs.readFileSync(certificatePath, { encoding: 'utf8' });
-    
+
     if (!certificate || certificate.trim().length === 0) {
-      debugLogError("🛡️ Security Error: Invalid or empty SSL certificate");
+      debugLogError("Security Error: Invalid or empty SSL certificate");
       return undefined;
     }
-    
+
     // Basic PEM format validation
     if (!certificate.includes('BEGIN CERTIFICATE') || !certificate.includes('END CERTIFICATE')) {
-      debugLogError('🚫 Invalid certificate format');
+      debugLogError('nvalid certificate format');
       return undefined;
     }
-    
+
     return certificate;
   } catch (error) {
-    debugLogError(`🔒 Certificate Reading Security Failure: ${error instanceof Error ? error.message : String(error)}`);
+    debugLogError(`Certificate Reading Security Failure: ${error instanceof Error ? error.message : String(error)}`);
     return undefined;
   }
 };
@@ -138,7 +135,7 @@ export async function dbQuery(
 ): Promise<any> {
   const connection = new DatabaseConnection();
   let dbConnect: Connection | undefined;
-  
+
   try {
     // Enhanced input validation
     if (!textQuery || typeof textQuery !== 'string' || textQuery.trim().length === 0) {
@@ -151,18 +148,18 @@ export async function dbQuery(
     }
 
     dbConnect = await connection.connectWithDB();
-    
+
     const result = await dbConnect.execute(textQuery, variables, {
       outFormat: OracleDB.OUT_FORMAT_OBJECT,
       maxRows: 500, // Reduced from 1000 for additional security
     });
-    
+
     logQuerySuccess(correlationID, textQuery, result);
-    
+
     if (!result.rows || result.rows.length === 0) {
       return null;
     }
-    
+
     return replaceNaWith0(result.rows[0]);
   } catch (error) {
     debugLogError(error);
@@ -202,7 +199,7 @@ export default class DatabaseConnection {
         });
       }
     } catch (error) {
-      debugLogError(`🚨 Oracle Client Initialization Failure: ${error}`);
+      debugLogError(`Oracle Client Initialization Failure: ${error}`);
       throw new Error('Critical failure initializing Oracle client');
     }
   }
@@ -217,7 +214,7 @@ export default class DatabaseConnection {
         this.dbConfig,
         (err: Error | null, connection: Connection | null) => {
           if (err || !connection) {
-            debugLogError(`🔒 Secure Connection Failure: ${err?.message || 'Unknown authentication error'}`);
+            debugLogError(`Secure Connection Failure: ${err?.message || 'Unknown authentication error'}`);
             reject(new Error(`Secure database connection failed: Authentication or network issue`));
             return;
           }
@@ -235,7 +232,7 @@ export default class DatabaseConnection {
     return new Promise((resolve) => {
       connection.release((err) => {
         if (err) {
-          debugLogError(`🚨 Connection Release Error: ${err.message}`);
+          debugLogError(`Connection Release Error: ${err.message}`);
         }
         resolve();
       });

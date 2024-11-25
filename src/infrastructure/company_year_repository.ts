@@ -1,6 +1,6 @@
 import { dbQuery } from "./database/oracle";
 import { Company, YearlyCluster, CompanyYear } from "./models";
-import { debugLogError } from "../application";
+import { debugLogError } from "../application/logger";
 
 export class CompanyRepository {
   /**

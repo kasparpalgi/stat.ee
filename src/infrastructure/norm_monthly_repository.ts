@@ -1,11 +1,11 @@
 import { dbQuery } from "./database/oracle";
 import { MonthlyCluster } from "./models";
 import { NormalisationRepository } from "./repository";
-import { convertKeysToLowerCase, debugLogError } from "./../application";
+import { convertKeysToLowerCase } from "./../application";
+import { debugLogError } from "./../application/logger";
 
 export class NormMonthlyRepository
-  implements NormalisationRepository<MonthlyCluster>
-{
+  implements NormalisationRepository<MonthlyCluster> {
   /**
    * Retrieves the monthly data for a given kood.
    * @param id - The company identifier identifier.
