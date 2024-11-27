@@ -29,7 +29,7 @@ const validateOracleConfig = (): OracleConfig => {
   const requiredVars = [
     'ORACLE_USER',
     'ORACLE_PASSWORD',
-    'ORACLE_THICK_CONNECT_STRING'
+    'ORACLE_CONNECT_STRING'
   ];
 
   const missingVars = requiredVars.filter(varName => !process.env[varName]);
@@ -42,7 +42,10 @@ const validateOracleConfig = (): OracleConfig => {
       "\nSecure Configuration Requirements:",
       "ORACLE_USER=secure_database_username",
       "ORACLE_PASSWORD=complex_password_with_high_entropy",
-      "ORACLE_THICK_CONNECT_STRING=fully_qualified_thick_client_connection_string",
+      "ORACLE_CONNECT_STRING=connection_string_format",
+      "\nSupported Connection String Formats:",
+      "1. Easy Connect: hostname:port/service_name",
+      "2. TNS Name: (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=hostname)(PORT=port))(CONNECT_DATA=(SERVICE_NAME=service_name)))",
       "\nSecurity Recommendations:",
       "- Use environment-specific credentials",
       "- Implement strong password policies",
@@ -54,10 +57,21 @@ const validateOracleConfig = (): OracleConfig => {
     throw new Error('Incomplete or insecure Oracle database configuration');
   }
 
-  // Validate connection string complexity and format
-  const connectString = process.env.ORACLE_THICK_CONNECT_STRING!;
-  if (!connectString.includes('@') || !connectString.includes(':')) {
-    throw new Error('Invalid thick connection string format');
+  const connectString = process.env.ORACLE_CONNECT_STRING!;
+
+  // Validate connection string formats
+  const validateConnectionString = (str: string): boolean => {
+    // Easy Connect format validation
+    const easyConnectRegex = /^[a-zA-Z0-9.-]+:\d+\/[a-zA-Z0-9_]+$/;
+
+    // TNS Name format validation (basic structure check)
+    const tnsNameRegex = /^\(DESCRIPTION=.*\(HOST=.*\)\(PORT=.*\)\(SERVICE_NAME=.*\).*\)$/;
+
+    return easyConnectRegex.test(str) || tnsNameRegex.test(str);
+  };
+
+  if (!validateConnectionString(connectString)) {
+    throw new Error('Invalid Oracle connection string format. Please check the format and try again.');
   }
 
   return {
