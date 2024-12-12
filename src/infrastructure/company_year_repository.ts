@@ -1,6 +1,8 @@
-import { dbQuery } from "./database/oracle";
-import { Company, YearlyCluster, CompanyYear } from "./models";
-import { debugLogError } from "../application/logger";
+import client from "./database/oracle-client";
+import { Company } from './models/company';
+import { debugLogError } from '../application/logger';
+import { CompanyYear } from './models/company_year';
+import { YearlyCluster } from './models/year_cluster';
 
 export class CompanyRepository {
   /**
@@ -8,7 +10,8 @@ export class CompanyRepository {
    * @returns A promise that resolves to the latest year of a comapnay
    * @throws {Error('Cluster is not valid')} - If the cluster is 'muu'.
    **/
-  async getLatestYear(id: string, correlationID: string): Promise<Company> {
+  async getLastYearFiltered(id: string, correlationID: string): Promise<Record<string, any>> {
+    // Gets latest yearly data for company by ID and filters out companies with less than 90% of the data
     const query = `
             WITH Filtered AS (
                 SELECT *
@@ -23,78 +26,46 @@ export class CompanyRepository {
             ORDER BY "aasta" DESC
             FETCH FIRST 1 ROW ONLY
         `;
-    try {
-      if (id.length !== 8 || isNaN(parseInt(id))) {
-        throw new Error("ID must be an 8-digit number");
-      }
-      const response = await dbQuery(query, { jykood: id }, correlationID);
-      const company = Company.deserialize(response);
-      if (company.klaster === "muu") {
-        throw new Error("Cluster is not valid");
-      }
-      return Company.deserialize(response);
-    } catch (error) {
-      debugLogError(error);
-      switch (error.message) {
-        case "ID must be an 8-digit number":
-          throw new Error("ID must be an 8-digit number");
-        case "Cluster is not valid":
-          throw new Error("Cluster is not valid");
-        default:
-          throw new Error("ID not found");
-      }
-    }
+
+    const response = await client.queryOne(query, { jykood: id }, correlationID);
+
+    return response;
   }
 
-  async getYear(company: Company, correlationID: string): Promise<CompanyYear> {
+  async getLastYear(id: string,correlationID: string): Promise<Record<string, any>> {
+    // Gets latest yearly data for company by ID
     const query = `
         SELECT *
-                FROM "ELUJOULISUSEINDEKS"."AASTASED"
-                WHERE "jykood" = :jykood
-                ORDER BY "aasta" DESC
+        FROM "ELUJOULISUSEINDEKS"."AASTASED" 
+        WHERE "jykood" = :jykood
+        ORDER BY "aasta" DESC
         FETCH FIRST 1 ROWS ONLY
-        `;
-    try {
-      const result = await dbQuery(
+    `;
+     const result = await client.queryOne(
         query,
-        { jykood: company.jykood },
+       { jykood: id},
         correlationID
       );
-      const yearNumber = result.aasta;
-      const forecastCompany = Company.deserialize(result);
-      const forecastYear = YearlyCluster.deserialize(result);
-      if (forecastCompany === null || forecastYear === null) {
-        throw new Error("Yearly data not found");
-      }
-      const normSuffix = this.computeNormSuffix(company, forecastCompany);
-      return {
-        company: company,
-        year: forecastYear,
-        normSuffix: normSuffix,
-        yearNumber: yearNumber,
-      };
-    } catch (error) {
-      debugLogError(error);
-      switch (error.message) {
-        case "Yearly data not found":
-          throw new Error("Yearly data not found");
-        default:
-          throw new Error("ID not found");
-      }
-    }
+    return result
   }
+}
 
-  // New function to determine the normalization suffix
-  private computeNormSuffix(
-    currentStatus: { aasta: number },
-    companyForecast: { aasta: number }
-  ): "_UUS" | "_VANA" {
-    if (currentStatus.aasta === companyForecast.aasta) {
-      return "_VANA";
-    } else if (currentStatus.aasta < companyForecast.aasta) {
-      return "_UUS";
-    } else {
-      throw new Error("Unable to choose normSuffix");
-    }
+
+/**
+ * Determines the normalization suffix based on the current company status and forecast year
+ * @param company Current company status with year
+ * @param forecastCompany Company forecast with year
+ * @returns Normalization suffix "_UUS" or "_VANA"
+ */
+export function computeNormSuffix(
+  company: { aasta: number },
+  forecastCompany: { aasta: number }
+): "_UUS" | "_VANA" {
+  if (company.aasta === forecastCompany.aasta) {
+    return "_VANA";
+  } else if (company.aasta < forecastCompany.aasta) {
+    return "_UUS";
+  } else {
+    throw new Error("Unable to choose normSuffix");
   }
 }

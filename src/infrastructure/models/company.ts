@@ -1,5 +1,5 @@
 import { JsonProperty, SerializableEntity } from "ts-jackson";
-import { YearlyCluster as YearlyCluster } from "./year_cluster";
+import { YearlyCluster } from './year_cluster';
 
 export class Company extends SerializableEntity {
   @JsonProperty()

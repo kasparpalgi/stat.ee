@@ -1,10 +1,5 @@
 import { JsonProperty, SerializableEntity } from "ts-jackson";
-import {
-  clamp,
-  clampBetween,
-  divideObjects,
-  subtractObjects,
-} from "../../application";
+import { clamp, clampBetween } from '../../application/utils/value_clamp';
 
 /**
  * The values of the fields in this class are used to calculate the prediction for a company.

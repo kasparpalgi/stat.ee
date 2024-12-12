@@ -1,32 +1,22 @@
 import * as tf from "@tensorflow/tfjs-node";
-import { ModelIndicator } from "../domain/model_indicator";
-import { PredictionResponse } from "../domain";
-import { Prediction } from "../domain";
+import { NormalizationDataProvider } from '../infrastructure/norm_data_provider';
+import { ModelIndicator } from '../domain/model_indicator';
+import { debugLogError, logModelLoadError } from './logger';
+import { CompanyYear } from '../infrastructure/models/company_year';
+import { YearlyCluster, convertYearlyAsArray } from '../infrastructure/models/year_cluster';
+import { MonthlyCluster, convertMonthlyAsArray } from '../infrastructure/models/monthly_cluster';
+import { divideObjects, subtractObjects } from './utils/operations';
+import { Company } from '../infrastructure/models/company';
+import { Prediction } from '../domain/prediction';
+import { PredictionResponse } from '../domain/prediction_response';
 
-import {
-  NormYearlyRepository,
-  NormMonthlyRepository,
-  Company,
-  CompanyYear,
-  YearlyCluster,
-  MonthlyCluster,
-  convertYearlyAsArray,
-  convertMonthlyAsArray,
-} from "../infrastructure";
-import { debugLogError, logModelLoadError } from "./logger";
 
-import { divideObjects, subtractObjects } from "./utils";
+
 /**
  * Represents a service for working with yearly models.
  */
 export class ModelService {
-  private readonly yearlyRepository: NormYearlyRepository;
-  private readonly monthlyRepository: NormMonthlyRepository;
-
-  constructor() {
-    this.yearlyRepository = new NormYearlyRepository();
-    this.monthlyRepository = new NormMonthlyRepository();
-  }
+  constructor(private readonly dataProvider: NormalizationDataProvider) { }
 
   /**
    * Loads a TensorFlow Layers Model.
@@ -56,29 +46,29 @@ export class ModelService {
   }
 
   async resolveYearly(
-    companyYear: CompanyYear,
+    company: Company,
+    yearly: YearlyCluster,
+    normSuffix: string,
     correlationID: string
   ): Promise<YearlyCluster> {
     // Clamp the company yearly predictable values
-    const year = companyYear.year;
+    const year = yearly;
 
     // Get the MEA values for the company klaster
-    const mea = await this.yearlyRepository.getMea(
-      companyYear.company.klaster,
-      companyYear.normSuffix,
+    const mea = await this.dataProvider.getYearlyMea(
+      company.klaster,
+      normSuffix,
       correlationID
     );
     // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
-    // const meaSubstracted = year.clamp().substract(mea.clamp());
     const meaSubstracted = subtractObjects(year, mea);
     // Get the SDS values for the company klaster
-    const sds = await this.yearlyRepository.getSds(
-      companyYear.company.klaster,
-      companyYear.normSuffix,
+    const sds = await this.dataProvider.getYearlySds(
+      company.klaster,
+      normSuffix,
       correlationID
     );
     // Divides each field by the corresponding `sds` value based on the cluster.
-    // const sdsDivided = meaSubstracted.divide(sds.clamp());
     const sdsDivided = divideObjects(meaSubstracted, sds);
     return sdsDivided;
   }
@@ -91,13 +81,13 @@ export class ModelService {
       return null;
     }
     // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
-    const mea: MonthlyCluster = await this.monthlyRepository.getMea(
+    const mea: MonthlyCluster = await this.dataProvider.getMonthlyMea(
       cluster.klaster,
       correlationID
     );
     const meaSubstracted: MonthlyCluster = subtractObjects(cluster, mea);
     // Divides each field by the corresponding `sds` value based on the cluster.
-    const sds: MonthlyCluster = await this.monthlyRepository.getSds(
+    const sds: MonthlyCluster = await this.dataProvider.getMonthlySds(
       cluster.klaster,
       correlationID
     );
@@ -121,7 +111,6 @@ export class ModelService {
       monthly,
       correlationID
     );
-
 
     const array = convertMonthlyAsArray(resolvedMonthly);
     // Create a tensor from the flattened array.

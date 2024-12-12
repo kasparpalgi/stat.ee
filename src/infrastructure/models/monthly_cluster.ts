@@ -1,5 +1,5 @@
-import { clamp, clampBetween } from "../../application";
-import { JsonProperty, SerializableEntity } from "ts-jackson";
+import { JsonProperty, SerializableEntity } from 'ts-jackson';
+import { clamp, clampBetween } from '../../application/utils/value_clamp';
 
 /**
  * Class representing a Monthly Cluster with various monthly metrics.
@@ -143,7 +143,7 @@ export class MonthlyCluster extends SerializableEntity {
   @JsonProperty()
   valjavottekuu: string;
 
- 
+
 
   /**
    * Clamps the values of each field based on predefined limits.
@@ -197,64 +197,64 @@ export class MonthlyCluster extends SerializableEntity {
 }
 
 
- /**
-   * Converts the monthly metrics into a single array.
-   * @returns {number[]} An array containing all the monthly metrics.
-   */
- export function convertMonthlyAsArray(cluster: MonthlyCluster): number[] {
-    const array3D = toArray3D(cluster);
-    return [...array3D.x, ...array3D.y, ...array3D.z];
-  }
+/**
+  * Converts the monthly metrics into a single array.
+  * @returns {number[]} An array containing all the monthly metrics.
+  */
+export function convertMonthlyAsArray(cluster: MonthlyCluster): number[] {
+  const array3D = toArray3D(cluster);
+  return [...array3D.x, ...array3D.y, ...array3D.z];
+}
 
-  /**
-   * Converts the monthly metrics into a 3D array.
-   *
-   * @private
-   * @returns {{ x: number[], y: number[], z: number[] }} An object containing three arrays representing KMD, TSD, and TOR metrics.
-   */
-  function toArray3D(cluster: MonthlyCluster): { x: number[]; y: number[]; z: number[] } {
-    return {
-      x: [
-        cluster.kmd_m_min12,
-        cluster.kmd_m_min11,
-        cluster.kmd_m_min10,
-        cluster.kmd_m_min9,
-        cluster.kmd_m_min8,
-        cluster.kmd_m_min7,
-        cluster.kmd_m_min6,
-        cluster.kmd_m_min5,
-        cluster.kmd_m_min4,
-        cluster.kmd_m_min3,
-        cluster.kmd_m_min2,
-        cluster.kmd_m_min1,
-      ],
-      y: [
-        cluster.tsd_m_min12,
-        cluster.tsd_m_min11,
-        cluster.tsd_m_min10,
-        cluster.tsd_m_min9,
-        cluster.tsd_m_min8,
-        cluster.tsd_m_min7,
-        cluster.tsd_m_min6,
-        cluster.tsd_m_min5,
-        cluster.tsd_m_min4,
-        cluster.tsd_m_min3,
-        cluster.tsd_m_min2,
-        cluster.tsd_m_min1,
-      ],
-      z: [
-        cluster.tor_m_min12,
-        cluster.tor_m_min11,
-        cluster.tor_m_min10,
-        cluster.tor_m_min9,
-        cluster.tor_m_min8,
-        cluster.tor_m_min7,
-        cluster.tor_m_min6,
-        cluster.tor_m_min5,
-        cluster.tor_m_min4,
-        cluster.tor_m_min3,
-        cluster.tor_m_min2,
-        cluster.tor_m_min1,
-      ],
-    };
-  }
+/**
+ * Converts the monthly metrics into a 3D array.
+ *
+ * @private
+ * @returns {{ x: number[], y: number[], z: number[] }} An object containing three arrays representing KMD, TSD, and TOR metrics.
+ */
+function toArray3D(cluster: MonthlyCluster): { x: number[]; y: number[]; z: number[] } {
+  return {
+    x: [
+      cluster.kmd_m_min12,
+      cluster.kmd_m_min11,
+      cluster.kmd_m_min10,
+      cluster.kmd_m_min9,
+      cluster.kmd_m_min8,
+      cluster.kmd_m_min7,
+      cluster.kmd_m_min6,
+      cluster.kmd_m_min5,
+      cluster.kmd_m_min4,
+      cluster.kmd_m_min3,
+      cluster.kmd_m_min2,
+      cluster.kmd_m_min1,
+    ],
+    y: [
+      cluster.tsd_m_min12,
+      cluster.tsd_m_min11,
+      cluster.tsd_m_min10,
+      cluster.tsd_m_min9,
+      cluster.tsd_m_min8,
+      cluster.tsd_m_min7,
+      cluster.tsd_m_min6,
+      cluster.tsd_m_min5,
+      cluster.tsd_m_min4,
+      cluster.tsd_m_min3,
+      cluster.tsd_m_min2,
+      cluster.tsd_m_min1,
+    ],
+    z: [
+      cluster.tor_m_min12,
+      cluster.tor_m_min11,
+      cluster.tor_m_min10,
+      cluster.tor_m_min9,
+      cluster.tor_m_min8,
+      cluster.tor_m_min7,
+      cluster.tor_m_min6,
+      cluster.tor_m_min5,
+      cluster.tor_m_min4,
+      cluster.tor_m_min3,
+      cluster.tor_m_min2,
+      cluster.tor_m_min1,
+    ],
+  };
+}

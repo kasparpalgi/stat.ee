@@ -8,3 +8,8 @@ docs/
 .vscode/
 state-ee.tar
 install-manifests
+Dockerfile
+.dockerignore
+README.md
+.env
+.env.*

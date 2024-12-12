@@ -1,6 +1,6 @@
-import { PredictionResponse } from "../../domain";
-import { YearlyCluster } from "./year_cluster";
-import { Company } from "./company";
+import { PredictionResponse } from '../../domain/prediction_response';
+import { Company } from './company';
+import { YearlyCluster } from './year_cluster';
 
 export interface CompanyYearPediction {
   companyYear: CompanyYear;
@@ -10,6 +10,4 @@ export interface CompanyYearPediction {
 export interface CompanyYear {
   company: Company;
   year: YearlyCluster;
-  normSuffix?: "_UUS" | "_VANA";
-  yearNumber: number;
 }

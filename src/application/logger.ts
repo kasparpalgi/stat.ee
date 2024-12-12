@@ -1,19 +1,21 @@
 import { randomUUID } from "crypto";
 import { ModelIndicator } from "src/domain/model_indicator";
+import { env } from "../infrastructure/config/environment";
 
-import dotenv from 'dotenv';
-
-dotenv.config();
-const { LOG_LEVEL, LOG_REQUEST } = process.env;
-
-export function debugLogError(exception ?: any) {
-    if (LOG_LEVEL === 'debug') {
+export function debugLogError(exception?: any) {
+    if (env.get('LOG_LEVEL') === 'debug') {
         console.log(exception);
     }
 }
 
-function logToStdout( message: QueryLog | RequestLog) {
-    if (LOG_REQUEST === 'false') {
+export function debugLogInfo(message: string) {
+    if (env.get('LOG_LEVEL') === 'debug') {
+        console.log(message);
+    }
+}
+
+export function logToStdout(message: QueryLog | RequestLog | Record<string, any>) {
+    if (!env.get('LOG_REQUEST')) {
         return;
     }
     process.stdout.write(JSON.stringify(message) + '\n');
@@ -31,17 +33,7 @@ export function logModelLoadError(cluster: string, model: ModelIndicator, error_
     });
 }
 
-export function logRequestError(request_id: string, error_message: string) {
-    logToStdout({
-        id: request_id,
-        timestamp: new Date().toISOString(),
-        severity: 'ERROR',
-        event_code: 500,
-        event_type: 'error',
-        error_message: error_message,
-        additional_info: "An error occurred while processing the request.",
-    });
-}
+
 
 export function logRequestSuccess(request_id: string, response_data: Record<string, any>) {
     logToStdout({

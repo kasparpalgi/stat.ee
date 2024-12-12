@@ -8,8 +8,21 @@
      └── key.pem
      └── ca.pem
      ```
-   
-2. **Add TensorFlow Models**  
+
+2. **Add Oracle Instant Client (Optional - for Thick Mode)**
+   Download Oracle Instant Client Basic or Basic Light package from [Oracle's website](https://www.oracle.com/database/technologies/instant-client/downloads.html).
+   Extract the files to the `instantclient/` folder.
+
+   - **Example Structure**:
+     ```sh
+     instantclient/
+     ├── libclntsh.so
+     ├── libnnz19.so
+     ├── libocci.so
+     └── other instant client files...
+     ```
+
+3. **Add TensorFlow Models**  
    Follow the steps from [Model Conversion](https://www.tensorflow.org/js/guide/conversion) guide.
    Add the TensorFlow models to the `models/` folder.
 
@@ -34,31 +47,31 @@
      │   └── model.json
      ```
 
-3. **Copy Environment File**  
+4. **Copy Environment File**  
    Copy `.env.example` to `.env`:
    ```sh
    cp .env.example .env
    ```
    
-3. **Load Docker Image**  
+5. **Load Docker Image**  
    Load the Docker image:
    ```sh
    docker load -i stat-ee.tar
    ```
 
-4. **Verify Image**  
+6. **Verify Image**  
    Confirm the image is loaded:
    ```sh
    docker images
    ```
 
-5. **Run Docker Image**  
+7. **Run Docker Image**  
    Execute the `docker-run.sh` script:
    ```sh
    sh docker-run.sh
    ```
 
-6. **View Logs**  
+8. **View Logs**  
    To view logs, replace `$containerId` with your container ID:
    ```sh
    docker logs $containerId -f

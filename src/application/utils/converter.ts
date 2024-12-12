@@ -1,4 +1,4 @@
-import { debugLogError } from "../logger";
+import { debugLogError } from '../logger';
 
 export function convertKeysToLowerCase(obj: any) {
   return Object.keys(obj).reduce((acc, key) => {

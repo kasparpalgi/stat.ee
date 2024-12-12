@@ -1,5 +1,6 @@
-import { Response, Request } from "express";
-import { buildNullResponse } from "../../application/build_response";
+import { Response, Request } from 'express';
+import { ApiResponse } from '../routes/eestat/1/elujoud/response';
+import { logToStdout, debugLogError } from '../logger';
 
 export function handleErrors(
   req: Request,
@@ -7,6 +8,7 @@ export function handleErrors(
   err: Error,
   correlationID: string
 ): void {
+  debugLogError(err);
   let message: Record<string, any>;
   let statusCode: number;
   switch (err.message) {
@@ -48,6 +50,7 @@ export function handleErrors(
         },
       };
       break;
+    
     case "ID must be an 8-digit number":
       // 422 Unprocessable Content for client-side request formatting errors
       statusCode = 422;
@@ -65,6 +68,7 @@ export function handleErrors(
         },
       };
       break;
+  
     case "Cluster is not valid":
       // 404 Not Found for an unsupported cluster
       statusCode = 404;
@@ -83,6 +87,60 @@ export function handleErrors(
         },
       };
       break;
+
+    case "Last year company data is not valid":
+      // 422 Unprocessable Content for invalid forecast company data
+      statusCode = 422;
+      message = {
+        request_id: correlationID,
+        statusCode: statusCode,
+        status: "error",
+        error: {
+          code: "invalid-last-year-data",
+          message: "Invalid last year company data.",
+          details: "The last year company data is missing required cluster information.",
+          timestamp: new Date().toISOString(),
+          path: req.path,
+          suggestion: "Ensure last year company data includes valid cluster assignment.",
+        },
+      };
+      break;
+      
+    case "Yearly data is not valid":
+      // 422 Unprocessable Content for invalid yearly data
+      statusCode = 422;
+      message = {
+        request_id: correlationID,
+        statusCode: statusCode,
+        status: "error",
+        error: {
+          code: "invalid-yearly-data", 
+          message: "Invalid yearly data.",
+          details: "The yearly data contains too many missing values (more than 3).",
+          timestamp: new Date().toISOString(),
+          path: req.path,
+          suggestion: "Ensure yearly data has sufficient valid values for processing.",
+        },
+      };
+      break;
+      
+    case "Monthly data is not valid":
+      // 422 Unprocessable Content for invalid monthly data
+      statusCode = 422;
+    message = {
+      request_id: correlationID,
+      statusCode: statusCode,
+      status: "error",
+      error: {
+        code: "invalid-monthly-data",
+        message: "Invalid monthly data.",
+        details: "The monthly data contains too many missing values (more than 3).",
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        suggestion: "Ensure monthly data has sufficient valid values for processing.",
+      },
+    };
+    break;
     case "Monthly MEA not found":
     case "Monthly SDS not found":
     case "Yearly SDS not found":
@@ -160,7 +218,9 @@ export function handleErrors(
       break;
   }
 
-  const emptyResponse = buildNullResponse();
+  logToStdout(message);
+
+  const emptyResponse = ApiResponse.buildNull();
   res.setHeader("X-Error-Info", JSON.stringify(message));
   res.status(statusCode).json(emptyResponse);
 

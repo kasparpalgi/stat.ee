@@ -1,20 +1,37 @@
 import express, { Request, Response } from "express";
-import handleCompanyId from "./application/routes/eestat/1/elujoud/id";
+import handleRequest from "./application/routes/eestat/1/elujoud/id";
 import { runApp } from "./application/server";
+import { env } from './infrastructure/config/environment';
 
 const app = express();
 
+
+if (env.canUseDatabase()) {
+  /**
+  * GET /eestat/1/elujoud/:id
+  * @summary Get a company prediction by ID
+  * @param id - The ID of the company.
+  * @return 200 - Success - application/json
+  *
+  * Use /eelstat/1/elujoud/12712965 for testing
+  */
+  app.get("/eestat/1/elujoud/:id", async (req: Request, res: Response) =>
+    handleRequest(req, res)
+  );
+}
+
+
+if (env.canUseJson()) {
 /**
- * GET /eestat/1/elujoud/:id
- * @summary Get a company prediction by ID
- * @param id - The ID of the company.
+ * POST /eestat/1/elujoud
+ * @summary Get a company prediction using JSON data
+ * @param request.body - JSON containing company, yearly, and monthly data
  * @return 200 - Success - application/json
- *
- * Use /eelstat/1/elujoud/12712965 for testing
  */
-app.get("/eestat/1/elujoud/:id", async (req: Request, res: Response) =>
-  handleCompanyId(req, res)
+app.post("/eestat/1/elujoud", express.json(), async (req: Request, res: Response) =>
+  handleRequest(req, res)
 );
+}
 
 /**
  * GET /healthz

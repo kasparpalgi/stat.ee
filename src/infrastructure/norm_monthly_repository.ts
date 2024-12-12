@@ -1,8 +1,8 @@
-import { dbQuery } from "./database/oracle";
-import { MonthlyCluster } from "./models";
-import { NormalisationRepository } from "./repository";
-import { convertKeysToLowerCase } from "./../application";
-import { debugLogError } from "./../application/logger";
+import client from "./database/oracle-client";
+import { convertKeysToLowerCase } from '../application/utils/converter';
+import { debugLogError } from '../application/logger';
+import { MonthlyCluster } from './models/monthly_cluster';
+import { NormalisationRepository } from './norm_repository';
 
 export class NormMonthlyRepository
   implements NormalisationRepository<MonthlyCluster> {
@@ -18,6 +18,8 @@ export class NormMonthlyRepository
     id: string,
     correlationID: string
   ): Promise<MonthlyCluster | null> {
+
+    // Query to get the latest monthly data for a company by ID
     const query = `
             SELECT *
                 FROM "ELUJOULISUSEINDEKS"."KUISED"
@@ -25,23 +27,12 @@ export class NormMonthlyRepository
             FETCH FIRST 1 ROWS ONLY
         `;
     try {
-      const response = await dbQuery(query, { kood: id }, correlationID);
+      const response = await client.queryOne(query, { kood: id }, correlationID);
       if (response === null || response === undefined) {
         // When monthly data does not exist, models 1:4 should still be able to produce an output
         return null;
       }
-      const responseValues = Object.values(response);
-      const undefinedFieldsLenght = responseValues.filter(
-        (value) => value === null || value === undefined
-      ).length;
-      if (undefinedFieldsLenght > 3) {
-        // Number of missing properties exceeds the limit of 3, the model cannot be used
-        return null;
-      }
-      console.log(response.tor_m_min1, "query");
-      const monthly = MonthlyCluster.deserialize(response);
-      console.log(monthly.tor_m_min1, "deserialize");
-      return monthly;
+      return MonthlyCluster.deserialize(response);
     } catch (error) {
       debugLogError(error);
       throw new Error("Failed to retrieve monthly data");
@@ -59,7 +50,8 @@ export class NormMonthlyRepository
             FETCH FIRST 1 ROWS ONLY
         `;
     try {
-      const response = await dbQuery(query, { klaster }, correlationID);
+      const response = await client.queryOne(query, { klaster }, correlationID);
+      // Some of the keys are uppercase, so we need to convert them to lowercase
       const formattedResponse = convertKeysToLowerCase(response);
       return MonthlyCluster.deserialize(formattedResponse);
     } catch (error) {
@@ -79,7 +71,8 @@ export class NormMonthlyRepository
             FETCH FIRST 1 ROWS ONLY
             `;
     try {
-      const response = await dbQuery(query, { klaster }, correlationID);
+      const response = await client.queryOne(query, { klaster }, correlationID);
+      // Some of the keys are uppercase, so we need to convert them to lowercase
       const formattedResponse = convertKeysToLowerCase(response);
       return MonthlyCluster.deserialize(formattedResponse);
     } catch (error) {

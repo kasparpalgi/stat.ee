@@ -6,8 +6,11 @@
 
 #### Routes
 ```http
-GET /eestat/1/elujoud/:id - Get the company registration number
+GET /eestat/1/elujoud/:id - Get the company based on registration number
 ```
+```http
+POST /eestat/1/elujoud - Get the company data with JSON body
+``` 
 
 ### Prediction Model Assignments
 
@@ -47,13 +50,13 @@ mintlify dev
 
 This opens the docs in your web browser, usually at http://localhost:4111/.
 
-### Building the Docer image - Using the script
+## Building the Docer image - Using the script
 
 [/docker_build.sh](docker_build.sh)
 
-Navigate in the project root directory.
+#### Navigate in the project root directory.
 
-Make the script executable by running:
+#### Make the script executable by running:
 
 `chmod +x build-docker.sh`
 
@@ -61,6 +64,154 @@ Execute the script:
 
 `./build-docker.sh`
 
-Or using a single command:
+#### Or using a single command:
 
 `docker build -t stat-ee:latest . && docker save -o stat-ee.tar stat-ee:latest`
+
+
+## New Route
+
+## POST /eestat/1/elujoud
+
+This route allows you to get company predictions by providing JSON data directly, rather than using a company ID.
+
+
+## Building the JSON
+
+### Request Format
+
+The request body should be a JSON object with the following structure:
+
+
+### Company Data
+From `company_year_repository.ts`:
+
+#### Query to Use
+
+The CompanyRepository class provides two key methods for retrieving company data:
+##### For `company` data:
+   - Uses `getLastYearFiltered()` method
+   - Filters for companies with maa_protsent >= 90%
+   - Returns most recent valid year's data
+   ```sql
+   WITH Filtered AS (
+       SELECT * 
+       FROM "ELUJOULISUSEINDEKS"."AASTASED"
+       WHERE "jykood" = :jykood
+       ORDER BY "aasta" DESC
+       FETCH FIRST 2 ROWS ONLY
+   )
+   SELECT *
+   FROM Filtered 
+   WHERE "maa_protsent" >= 0.9
+   ORDER BY "aasta" DESC
+   FETCH FIRST 1 ROW ONLY
+   ```
+
+##### For `lastYearCompany` data:
+   - Uses `getLastYear()` method
+   - Gets most recent year without filtering
+   - Used for prediction target year
+   ```sql
+   SELECT *
+   FROM "ELUJOULISUSEINDEKS"."AASTASED"
+   WHERE "jykood" = :jykood
+   ORDER BY "aasta" DESC
+   FETCH FIRST 1 ROWS ONLY
+   ```
+
+Both queries return data in this structure:
+
+```json
+{
+  // ...
+  "company": {
+      "jykood": "string",
+      "klaster": "string",
+      "aasta": "number",
+      "emtak": "string",
+      "sektor_nr": "number",
+      "ettevotte_suurusklass": "number",
+      "maakond": "number",
+      "kov": "number"
+  },
+  "lastYearCompany": {
+      "jykood": "string",
+      "klaster": "string",
+      "aasta": "number",
+      "emtak": "string",
+      "sektor_nr": "number",
+      "ettevotte_suurusklass": "number",
+      "maakond": "number",
+      "kov": "number"
+  }
+  // ...
+}
+```
+
+#### Monthly MEA Query
+From `norm_monthly_repository.ts`:
+##### Query to Use
+```sql
+SELECT *
+    FROM "ELUJOULISUSEINDEKS"."NORM_KUU_KESK"
+    WHERE "klaster" = :klaster
+FETCH FIRST 1 ROWS ONLY
+```
+ 
+#### Monthly SDS Query
+From norm_monthly_repository.ts:
+##### Query to Use
+```sql
+SELECT *
+    FROM "ELUJOULISUSEINDEKS"."NORM_KUU_SDS"
+    WHERE "klaster" = :klaster
+FETCH FIRST 1 ROWS ONLY
+```
+##### JSON Structure:
+```json
+{ 
+  // ...
+  "monthlyMea": {
+    // Fields from NORM_KUU_KESK query
+  },
+  "monthlySds": {
+    // Fields from NORM_KUU_SDS query
+  },
+  "yearlyMea": {
+    // Fields from NORM_AASTA_KESK query
+  },
+  "yearlySds": {
+    // Fields from NORM_AASTA_SDS query
+  }
+  // ...
+}
+```
+
+
+### Monthly Data
+From `norm_monthly_repository.ts`:
+#### Query to Use
+```sql
+SELECT *
+    FROM "ELUJOULISUSEINDEKS"."KUISED"
+    WHERE "kood" = :kood
+FETCH FIRST 1 ROWS ONLY 
+```
+
+#### JSON Structure
+```json
+{
+  // ...
+  "monthly": {
+    "jykood": "string",
+    "klaster": "string",
+    "kuu": "number",
+    "aasta": "number",
+    "kmd_m_min12": "number",
+    "kmd_m_min11": "number"
+    // ... other monthly metrics
+  }
+  // ...
+}
+```

@@ -2,18 +2,20 @@
 import fs from "fs";
 import path from "path";
 import https from "https";
-import dotenv from "dotenv";
-import { debugLogError } from "./logger";
+import { OracleConfig } from '../infrastructure/database/oracle-config';
+import { debugLogInfo, debugLogError } from './logger';
+import { env } from './../infrastructure/config/environment';
 
-dotenv.config();
-
-const { PORT, SSL } = process.env;
-const port = PORT || 80;
-const ssl = SSL === "true";
-
-export function runApp(app: any) {
+export async function runApp(app: any) {
+  debugLogInfo(`Running on ${process.arch} architecture`);
   try {
-    if (ssl) {
+    if (env.canUseDatabase()) {
+      // Initialize the configuration once at app startup
+      const dbConfig = OracleConfig.getInstance();
+      await dbConfig.initialize();
+    }
+
+    if (env.get('SSL')) {
       runHTTPS(app);
     } else {
       runHTTP(app);
@@ -43,9 +45,10 @@ function runHTTPS(app: any) {
   console.log("Server is configured to run in HTTPS mode");
   try {
     const credentials = sslCertificate();
+    const port = env.get('PORT');
     // Start HTTPS server
     https.createServer(credentials, app).listen(port, () => {
-      if (port === "443") {
+      if (port === 443) {
         console.log(`HTTPS server running on port https://localhost`);
       } else {
         console.log(`HTTPS server running on port https://localhost:${port}`);
@@ -64,9 +67,10 @@ function runHTTPS(app: any) {
 function runHTTP(app: any) {
   console.log("Server is configured to run in HTTP mode");
   try {
+    const port = env.get('PORT');
     // Start HTTP server
     app.listen(port, () => {
-      if (port === "80") {
+      if (port === 80) {
         console.log(`HTTP server running on port http://localhost`);
       } else {
         console.log(`HTTP server running on port http://localhost:${port}`);

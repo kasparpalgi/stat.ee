@@ -1,9 +1,10 @@
 services:
   stat-ee:
     image: stat-ee:latest
-    ports:
-      - '${PORT}:${PORT}'
     env_file: ".env"
+    ports:
+      - "80:80"
     volumes:
       - ./certs:/home/appuser/stat-ee/certs
       - ./models:/home/appuser/stat-ee/models
+      - ./admin:/usr/lib/oracle/23/client64/lib/network/admin:Z,ro

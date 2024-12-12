@@ -1,6 +1,6 @@
 {
   "name": "stat-ee",
-  "version": "1.0.0+24",
+  "version": "1.0.0+25",
   "description": "",
   "main": "src/app.ts",
   "directories": {
@@ -34,15 +34,16 @@
   "homepage": "https://github.com/crewnew/stat-ee#readme",
   "dependencies": {
     "@tensorflow/tfjs-node": "^4.22.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.7",
     "express": "^4.21.1",
     "https": "^1.0.0",
-    "oracledb": "^6.6.0",
+    "oracledb": "^6.7.0",
     "ts-jackson": "^1.6.0",
-    "tslib": "^2.8.0"
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.3"
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.2"
   }
 }

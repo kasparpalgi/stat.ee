@@ -1,7 +1,7 @@
-import { dbQuery } from "./database/oracle";
-import { YearlyCluster } from "./models";
-import { NormalisationRepository as NormalisationRepository } from "./repository";
-import { debugLogError } from "../application/logger";
+import client from "./database/oracle-client";
+import { YearlyCluster } from './models/year_cluster';
+import { NormalisationRepository } from './norm_repository';
+import { debugLogError } from '../application/logger';
 
 export class NormYearlyRepository
   implements NormalisationRepository<YearlyCluster> {
@@ -17,7 +17,7 @@ export class NormYearlyRepository
             FETCH FIRST 1 ROWS ONLY
         `;
     try {
-      const response = await dbQuery(query, { klaster }, correlationID);
+      const response = await client.queryOne(query, { klaster }, correlationID);
       return YearlyCluster.deserialize(response);
     } catch (error) {
       debugLogError(error);
@@ -37,7 +37,7 @@ export class NormYearlyRepository
             FETCH FIRST 1 ROWS ONLY
         `;
     try {
-      const response = await dbQuery(query, { klaster }, correlationID);
+      const response = await client.queryOne(query, { klaster }, correlationID);
       return YearlyCluster.deserialize(response);
     } catch (error) {
       debugLogError(error);
