@@ -7,4 +7,3 @@ services:
     volumes:
       - ./certs:/home/appuser/stat-ee/certs
       - ./models:/home/appuser/stat-ee/models
-      - ./admin:/usr/lib/oracle/23/client64/lib/network/admin:Z,ro

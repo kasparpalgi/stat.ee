@@ -1,52 +1,31 @@
-import express, { Request, Response } from "express";
-import handleRequest from "./application/routes/eestat/1/elujoud/id";
-import { runApp } from "./application/server";
+import express from 'express';
+import handleRequest from './application/routes/eestat/1/elujoud/id';
 import { env } from './infrastructure/config/environment';
 
 const app = express();
+const port = env.get('PORT');
 
+// Middleware
+app.use(express.json());
 
-if (env.canUseDatabase()) {
-  /**
-  * GET /eestat/1/elujoud/:id
-  * @summary Get a company prediction by ID
-  * @param id - The ID of the company.
-  * @return 200 - Success - application/json
-  *
-  * Use /eelstat/1/elujoud/12712965 for testing
-  */
-  app.get("/eestat/1/elujoud/:id", async (req: Request, res: Response) =>
-    handleRequest(req, res)
-  );
-}
+// Routes
+app.post('/eestat/1/elujoud', handleRequest);
 
+// Health check endpoint
+app.head('/eestat/1/elujoud', (_, res) => res.sendStatus(200));
 
-if (env.canUseJson()) {
-/**
- * POST /eestat/1/elujoud
- * @summary Get a company prediction using JSON data
- * @param request.body - JSON containing company, yearly, and monthly data
- * @return 200 - Success - application/json
- */
-app.post("/eestat/1/elujoud", express.json(), async (req: Request, res: Response) =>
-  handleRequest(req, res)
-);
-}
-
-/**
- * GET /healthz
- * @summary Check if the server is up and running
- * @return 200 - Success - application/json
- * @tags General
- */
-app.get("/healthz", (_req: Request, res: Response) =>
-  res.status(200).json({ status: "ok" })
-);
-
-// all other routes should throw 404 not found
-app.use("*", (_req: Request, res: Response) => {
-  return res.status(404).json({ message: "Not found" });
+// Start server
+const server = app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
-// Start the server
-runApp(app);
+// Handle shutdown gracefully
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+export default app; 

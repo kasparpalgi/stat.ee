@@ -7,8 +7,8 @@ import { NormalisationRepository } from './norm_repository';
 export interface NormalizationDataProvider {
     getMonthlySds(klaster: string, correlationID: string): Promise<MonthlyCluster>;
     getMonthlyMea(klaster: string, correlationID: string): Promise<MonthlyCluster>;
-    getYearlySds(klaster: string, normSuffix: string, correlationID: string): Promise<YearlyCluster>;
-    getYearlyMea(klaster: string, normSuffix: string, correlationID: string): Promise<YearlyCluster>;
+    getYearlySds(klaster: string, correlationID: string): Promise<YearlyCluster>;
+    getYearlyMea(klaster: string, correlationID: string): Promise<YearlyCluster>;
 }
 
 /**
@@ -21,27 +21,25 @@ export class RepositoryNormalizationProvider implements NormalizationDataProvide
     ) { }
 
     async getMonthlySds(klaster: string, correlationID: string): Promise<MonthlyCluster> {
-        return this.monthlyRepository.getSds(klaster, '', correlationID);
+        return this.monthlyRepository.getSds(klaster, correlationID);
     }
 
     async getMonthlyMea(klaster: string, correlationID: string): Promise<MonthlyCluster> {
-        return this.monthlyRepository.getMea(klaster, '', correlationID);
+        return this.monthlyRepository.getMea(klaster, correlationID);
     }
 
     async getYearlySds(
         klaster: string,
-        normSuffix: string,
         correlationID: string
     ): Promise<YearlyCluster> {
-        return this.yearlyRepository.getSds(klaster, normSuffix, correlationID);
+        return this.yearlyRepository.getSds(klaster, correlationID);
     }
 
     async getYearlyMea(
         klaster: string,
-        normSuffix: string,
         correlationID: string
     ): Promise<YearlyCluster> {
-        return this.yearlyRepository.getMea(klaster, normSuffix, correlationID);
+        return this.yearlyRepository.getMea(klaster, correlationID);
     }
 }
 

@@ -48,7 +48,6 @@ export class ModelService {
   async resolveYearly(
     company: Company,
     yearly: YearlyCluster,
-    normSuffix: string,
     correlationID: string
   ): Promise<YearlyCluster> {
     // Clamp the company yearly predictable values
@@ -57,7 +56,6 @@ export class ModelService {
     // Get the MEA values for the company klaster
     const mea = await this.dataProvider.getYearlyMea(
       company.klaster,
-      normSuffix,
       correlationID
     );
     // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
@@ -65,7 +63,6 @@ export class ModelService {
     // Get the SDS values for the company klaster
     const sds = await this.dataProvider.getYearlySds(
       company.klaster,
-      normSuffix,
       correlationID
     );
     // Divides each field by the corresponding `sds` value based on the cluster.

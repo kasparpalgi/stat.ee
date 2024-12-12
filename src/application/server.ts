@@ -2,19 +2,12 @@
 import fs from "fs";
 import path from "path";
 import https from "https";
-import { OracleConfig } from '../infrastructure/database/oracle-config';
 import { debugLogInfo, debugLogError } from './logger';
 import { env } from './../infrastructure/config/environment';
 
 export async function runApp(app: any) {
   debugLogInfo(`Running on ${process.arch} architecture`);
   try {
-    if (env.canUseDatabase()) {
-      // Initialize the configuration once at app startup
-      const dbConfig = OracleConfig.getInstance();
-      await dbConfig.initialize();
-    }
-
     if (env.get('SSL')) {
       runHTTPS(app);
     } else {

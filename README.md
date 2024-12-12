@@ -125,7 +125,7 @@ Both queries return data in this structure:
 ```json
 {
   // ...
-  "company": {
+  "aastased": {
       "jykood": "string",
       "klaster": "string",
       "aasta": "number",
@@ -135,16 +135,6 @@ Both queries return data in this structure:
       "maakond": "number",
       "kov": "number"
   },
-  "lastYearCompany": {
-      "jykood": "string",
-      "klaster": "string",
-      "aasta": "number",
-      "emtak": "string",
-      "sektor_nr": "number",
-      "ettevotte_suurusklass": "number",
-      "maakond": "number",
-      "kov": "number"
-  }
   // ...
 }
 ```
@@ -172,16 +162,16 @@ FETCH FIRST 1 ROWS ONLY
 ```json
 { 
   // ...
-  "monthlyMea": {
+  "norm_kuu_kesk": {
     // Fields from NORM_KUU_KESK query
   },
-  "monthlySds": {
+  "norm_kuu_sds": {
     // Fields from NORM_KUU_SDS query
   },
-  "yearlyMea": {
+  "norm_aasta_kesk": {
     // Fields from NORM_AASTA_KESK query
   },
-  "yearlySds": {
+  "norm_aasta_sds": {
     // Fields from NORM_AASTA_SDS query
   }
   // ...
@@ -203,7 +193,7 @@ FETCH FIRST 1 ROWS ONLY
 ```json
 {
   // ...
-  "monthly": {
+  "kuised": {
     "jykood": "string",
     "klaster": "string",
     "kuu": "number",

@@ -1,6 +1,6 @@
-import { PredictionResponse } from 'src/domain/prediction_response';
-import { MonthlyCluster } from 'src/infrastructure/models/monthly_cluster';
-import { Company } from 'src/infrastructure/models/company';
+import { PredictionResponse } from '../../../../../domain/prediction_response';
+import { Company } from '../../../../../infrastructure/models/company';
+import { MonthlyCluster } from '../../../../../infrastructure/models/monthly_cluster';
 
 export class ApiResponse {
 

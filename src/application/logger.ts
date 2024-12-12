@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
-import { ModelIndicator } from "src/domain/model_indicator";
 import { env } from "../infrastructure/config/environment";
+import { ModelIndicator } from '../domain/model_indicator';
 
 export function debugLogError(exception?: any) {
     if (env.get('LOG_LEVEL') === 'debug') {

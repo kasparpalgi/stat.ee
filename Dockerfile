@@ -1,43 +1,65 @@
-FROM oraclelinux:9
+# Stage 1: Build
+FROM node:lts-bookworm-slim as builder
 
-# Install NodeJS 18
-RUN dnf -y module enable nodejs:18 && \
-    dnf -y install nodejs nodejs-nodemon npm
+# Install necessary packages for TensorFlow.js and glibc compatibility
+RUN apt-get update && \ 
+    apt-get install -y build-essential \
+    wget \
+    python3 \
+    make \
+    gcc \ 
+    libc6-dev 
 
-# Install Oracle Instant Client
-RUN dnf -y install oracle-instantclient-release-23ai-el9 && \
-    dnf -y install oracle-instantclient-basic && \
-    dnf -y install oracle-instantclient-devel oracle-instantclient-sqlplus && \
-    rm -rf /var/cache/dnf
+# Set the working directory inside the builder stage
+WORKDIR /home/appuser/build
 
-# Create non-root user
-RUN groupadd --system appgroup && useradd --system --gid appgroup --home /home/appuser appuser
+# Copy only necessary dependency definitions
+COPY package.json ./
 
-WORKDIR /home/appuser/stat-ee
+# Install dependencies, including TypeScript
+RUN npm install
+# Rebuild TensorFlow
+RUN npm rebuild @tensorflow/tfjs-node --build-from-source
 
-# Create directories with proper permissions
-RUN mkdir -p \
-    /home/appuser/stat-ee/certs \
-    /home/appuser/stat-ee/models \
-    /usr/lib/oracle/23/client64/lib/network/admin && \
-    chown -R appuser:appgroup /home/appuser/stat-ee
 
-# Copy package files and install dependencies  
-COPY package*.json ./
-RUN npm install && npm install -g @vercel/ncc
+# Install ncc globally
+RUN npm i -g @vercel/ncc
 
-# Copy application files
+# Copy the application source code
 COPY . .
+
+# Necessary for packaging the project
 RUN npm run pack
 
-# Set up volumes for certificates, models and Oracle config
-VOLUME ["/home/appuser/stat-ee/certs", "/home/appuser/stat-ee/models", "/usr/lib/oracle/23/client64/lib/network/admin"]
+# Stage 2: Production image
+# Start with a clean image
+FROM node:lts-bookworm-slim
 
-# Set Oracle environment variables
-ENV LD_LIBRARY_PATH=/usr/lib/oracle/23/client64/lib:$LD_LIBRARY_PATH \
-    PATH=/usr/lib/oracle/23/client64/bin:$PATH \
-    TNS_ADMIN=/usr/lib/oracle/23/client64/lib/network/admin
+# Install glibc for compatibility
+RUN apt-get update && \ 
+    apt-get install -y build-essential \
+    wget \
+    python3 \
+    make \
+    gcc \ 
+    libc6-dev 
 
+# Create a group and user with specified UID and GID
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup --home /home/appuser appuser
+
+# Set the working directory inside the container
+WORKDIR /home/appuser/stat-ee
+
+# Copy only the built artifacts from the build stage
+COPY --from=builder /home/appuser/build/dist ./dist
+
+# Use volumes for the certs directory
+VOLUME ["/home/appuser/stat-ee/certs"]
+# Use volumes for the models directory
+VOLUME ["/home/appuser/stat-ee/models"]
+# Set user before running further commands
 USER appuser
 
+
+# Define the command to run your app using CMD which defines your runtime
 CMD ["node", "dist/index.js"]

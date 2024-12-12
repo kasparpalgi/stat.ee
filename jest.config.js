@@ -1,30 +1,15 @@
 module.exports = {
-    clearMocks: true,
-    globals: {
-        window: {}
-    },
-
-    preset: "ts-jest",
-
-    moduleDirectories: [
-        'node_modules'
-    ],
-
-    moduleFileExtensions: ['ts', 'tsx', 'js', 'json', 'node', 'd.ts'],
-
-    transform: {
-        "node_modules/variables/.+\\.(j|t)sx?$": "ts-jest"
-    },
-
+    preset: 'ts-jest',
     testEnvironment: 'node',
-    testMatch: [
-        '**/*.test.ts?(x)',
-        'tests/*.ts'
+    testMatch: ['**/*.test.ts', '**/*.spec.ts'],
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+    coverageDirectory: 'coverage',
+    collectCoverageFrom: [
+        'src/**/*.{ts,tsx}',
+        '!src/**/*.d.ts',
+        '!src/**/index.ts'
     ],
-    collectCoverage: true,
-    coverageReporters: [
-        "text",
-        "cobertura"
-    ]
-
+    moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1'
+    }
 };
