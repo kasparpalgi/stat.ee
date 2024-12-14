@@ -12,6 +12,23 @@ export function handleErrors(
   let message: Record<string, any>;
   let statusCode: number;
   switch (err.message) {
+    case "All fields are null":
+      statusCode = 404;
+      message = {
+        request_id: correlationID,
+        statusCode: statusCode,
+        status: "error",
+        error: {
+          code: "company-not-found",
+          message: "Company not found.",
+          details: "The requested company identifier does not exist in the system.",
+          timestamp: new Date().toISOString(),
+          path: req.path,
+          suggestion:
+            "Verify the company ID. If you believe this is an error, contact support.",
+        },
+      };
+      break;
     case "ID not found":
       // 404 Not Found for a resource that cannot be located
       statusCode = 404;

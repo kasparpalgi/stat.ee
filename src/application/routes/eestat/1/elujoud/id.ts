@@ -35,12 +35,22 @@ export default async function handleRequest(
   }
 }
 
-function hasEnoughFields(object: any, maxNullValues: number = 3): boolean {
-  return !(Object.values(object).filter(value => value === null || value === undefined).length > maxNullValues);
+
+
+function allFieldsAreNull(object: any): boolean {
+  return Object.values(object).every(value => {
+    if (typeof value === 'object' && value !== null) {
+      return Object.values(value).every(v => v === null);
+    }
+    return value === null;
+  });
 }
 
-export async function handleJsonRequest(json: any, correlationID: string): Promise<ApiResponse> {
 
+export async function handleJsonRequest(json: any, correlationID: string): Promise<ApiResponse> {
+  if (allFieldsAreNull(json)) {
+    throw new Error("All fields are null");
+  }
   // company.getLatestYear
   const id = json.aastased.jykood;
   if (id.length !== 8 || isNaN(parseInt(id))) {
@@ -57,10 +67,6 @@ export async function handleJsonRequest(json: any, correlationID: string): Promi
 
   // company.getMonthly
   const monthly = MonthlyCluster.deserialize(json.kuised);
-  if (!hasEnoughFields(monthly, 3)) {
-    // Number of missing properties exceeds the limit of 3, the model cannot be used
-    throw new Error("Monthly data is not valid");
-  }
 
   const normalization = new JsonNormalizationProvider(
     json.norm_kuu_kesk,

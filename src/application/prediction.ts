@@ -1,4 +1,3 @@
-import { CompanyYear } from '../infrastructure/models/company_year';
 import { MonthlyCluster } from '../infrastructure/models/monthly_cluster';
 import { PredictionResponse } from '../domain/prediction_response';
 import { Company } from '../infrastructure/models/company';
@@ -14,8 +13,9 @@ export class PredictionService {
         correlationID: string,
         company: Company,
         yearly: YearlyCluster,
-        monthly: MonthlyCluster,
-    ): Promise<PredictionResponse> {
+        monthly: MonthlyCluster | null,
+    ): Promise<PredictionResponse | null> {
+       
         const monthlyCluster = await this.modelService.resolveMonthly(
             monthly,
             correlationID

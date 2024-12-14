@@ -2,7 +2,6 @@ import * as tf from "@tensorflow/tfjs-node";
 import { NormalizationDataProvider } from '../infrastructure/norm_data_provider';
 import { ModelIndicator } from '../domain/model_indicator';
 import { debugLogError, logModelLoadError } from './logger';
-import { CompanyYear } from '../infrastructure/models/company_year';
 import { YearlyCluster, convertYearlyAsArray } from '../infrastructure/models/year_cluster';
 import { MonthlyCluster, convertMonthlyAsArray } from '../infrastructure/models/monthly_cluster';
 import { divideObjects, subtractObjects } from './utils/operations';
@@ -71,10 +70,13 @@ export class ModelService {
   }
 
   async resolveMonthly(
-    cluster: MonthlyCluster | null,
+    cluster: MonthlyCluster,
     correlationID: string
   ): Promise<MonthlyCluster | null> {
     if (cluster === null) {
+      return null;
+    }
+    if (hasMaxMissingFields(cluster, 3)) {
       return null;
     }
     // Subtracts the corresponding `mea` value from each retrieved field based on the cluster.
@@ -229,4 +231,8 @@ export class ModelService {
 
     return response;
   }
+}
+
+function hasMaxMissingFields(object: any, maxNullValues: number = 3): boolean {
+  return Object.values(object).filter(value => value === null || value === undefined).length > maxNullValues;
 }

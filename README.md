@@ -1,9 +1,6 @@
 # Stat-ee
 
-### Installation
-- [docker-compose](install-manifests/docker-compose/README.md)
-- [docker-run](install-manifests/docker-run/README.md)
-
+### What to expect from the API
 #### Routes
 ```http
 GET /eestat/1/elujoud/:id - Get the company based on registration number
@@ -11,6 +8,33 @@ GET /eestat/1/elujoud/:id - Get the company based on registration number
 ```http
 POST /eestat/1/elujoud - Get the company data with JSON body
 ``` 
+
+#### The request will fail if:
+- Company ID isn't exactly 8 digits
+- Cluster value isn't valid
+- All fields are null
+
+#### How it works:
+- With complete data:
+  - All 5 models will give you predictions (y1, y2, y3)
+
+- With missing monthly data:
+  - Models 1-4 work normally
+  - Model 5 returns null
+  - Monthly stats return null
+
+- With some missing monthly data:
+  - Up to 3 missing months: Model 5 still works
+  - More than 3 missing months: Model 5 returns null
+
+#### Quick note on data processing:
+- Annual data works independently of monthly data
+- Monthly stats only show up if monthly data exists
+- You can have up to 3 missing fields before Model 5 stops working
+
+### Installation
+- [docker-compose](install-manifests/docker-compose/README.md)
+- [docker-run](install-manifests/docker-run/README.md)
 
 ### Prediction Model Assignments
 
@@ -50,7 +74,7 @@ mintlify dev
 
 This opens the docs in your web browser, usually at http://localhost:4111/.
 
-## Building the Docer image - Using the script
+## Building the Docker image - Using the script
 
 [/docker_build.sh](docker_build.sh)
 
@@ -85,15 +109,8 @@ The request body should be a JSON object with the following structure:
 
 ### Company Data
 From `company_year_repository.ts`:
-
-#### Query to Use
-
-The CompanyRepository class provides two key methods for retrieving company data:
-##### For `company` data:
-   - Uses `getLastYearFiltered()` method
-   - Filters for companies with maa_protsent >= 90%
-   - Returns most recent valid year's data
-   ```sql
+##### Query to Use
+```sql
    WITH Filtered AS (
        SELECT * 
        FROM "ELUJOULISUSEINDEKS"."AASTASED"
@@ -106,22 +123,8 @@ The CompanyRepository class provides two key methods for retrieving company data
    WHERE "maa_protsent" >= 0.9
    ORDER BY "aasta" DESC
    FETCH FIRST 1 ROW ONLY
-   ```
-
-##### For `lastYearCompany` data:
-   - Uses `getLastYear()` method
-   - Gets most recent year without filtering
-   - Used for prediction target year
-   ```sql
-   SELECT *
-   FROM "ELUJOULISUSEINDEKS"."AASTASED"
-   WHERE "jykood" = :jykood
-   ORDER BY "aasta" DESC
-   FETCH FIRST 1 ROWS ONLY
-   ```
-
-Both queries return data in this structure:
-
+```
+#### JSON Structure
 ```json
 {
   // ...
@@ -194,14 +197,19 @@ FETCH FIRST 1 ROWS ONLY
 {
   // ...
   "kuised": {
-    "jykood": "string",
-    "klaster": "string",
-    "kuu": "number",
-    "aasta": "number",
-    "kmd_m_min12": "number",
-    "kmd_m_min11": "number"
+    "kood": "string",
+    "emtak08": "number",
+    "emtak_estat": "string", 
+    "maa": "number",
+    "vald": "number",
+    "tarv_h": "number",
+    "oig_grupp": "string",
+    "sektor_nr": "number",
+    "sektor": "string",
+    "kmd_m_min12": "number"
     // ... other monthly metrics
   }
   // ...
 }
 ```
+
