@@ -3,7 +3,7 @@ import { YearlyCluster } from './year_cluster';
 
 export class Company extends SerializableEntity {
   @JsonProperty()
-  jykood: string;
+  kood: string;
   @JsonProperty()
   aasta: number;
   @JsonProperty()

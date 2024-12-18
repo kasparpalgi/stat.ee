@@ -48,40 +48,43 @@ function allFieldsAreNull(object: any): boolean {
 
 
 export async function handleJsonRequest(json: any, correlationID: string): Promise<ApiResponse> {
+  // Check if data any data is present
   if (allFieldsAreNull(json)) {
     throw new Error("All fields are null");
   }
-  // company.getLatestYear
-  const id = json.aastased.jykood;
-  if (id.length !== 8 || isNaN(parseInt(id))) {
+
+  // Check if company ID is valid
+  const company = Company.deserialize(json.company);
+  if (company.kood.length !== 8 || isNaN(parseInt(company.kood))) {
     throw new Error("ID must be an 8-digit number");
   }
-  const company = Company.deserialize(json.aastased);
+
+  // Check if cluster is valid
   if (company.klaster === "muu") {
     throw new Error("Cluster is not valid");
   }
 
-  // company.getYear
-  const yearly = YearlyCluster.deserialize(json.aastased);
 
+  // Data used for prediction
+  const forecastCompany = Company.deserialize(json.lastYearCompany);
+  const yearly = YearlyCluster.deserialize(json.lastYearCompany);
+  const monthly = MonthlyCluster.deserialize(json.monthly);
 
-  // company.getMonthly
-  const monthly = MonthlyCluster.deserialize(json.kuised);
-
+  // Normalization data
   const normalization = new JsonNormalizationProvider(
-    json.norm_kuu_kesk,
-    json.norm_kuu_sds,
-    json.norm_aasta_kesk,
-    json.norm_aasta_sds
+    json.monthlyMea,
+    json.monthlySds,
+    json.yearlyMea,
+    json.yearlySds
   );
 
+  
   const modelService = new ModelService(normalization);
   const predictionService = new PredictionService(modelService);
 
-
   const prediction = await predictionService.predict(
     correlationID,
-    company,
+    forecastCompany,
     yearly,
     monthly
   );

@@ -20,7 +20,7 @@ describe('Data Handling Tests', () => {
         it('should reject invalid company ID', async () => {
             const invalidData = {
                 ...json,
-                aastased: { ...json.aastased, jykood: '123' }
+                company: { ...json.company, kood: '123' }
             };
             await expect(handleJsonRequest(invalidData, mockCorrelationId))
                 .rejects
@@ -30,7 +30,7 @@ describe('Data Handling Tests', () => {
         it('should reject invalid cluster', async () => {
             const invalidData = {
                 ...json,
-                aastased: { ...json.aastased, klaster: 'muu' }
+                company: { ...json.company, klaster: 'muu' }
             };
             await expect(handleJsonRequest(invalidData, mockCorrelationId))
                 .rejects
@@ -47,38 +47,38 @@ describe('Data Handling Tests', () => {
     describe('Annual Data Processing', () => {
         it('should correctly process registrikood', async () => {
             const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.registrikood).toBe(json.aastased.jykood);
+            expect(result.registrikood).toBe(json.company.kood);
         });
 
         it('should correctly process basic annual fields', async () => {
             const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.prognAasta).toEqual(`${json.aastased.aasta}`);
-            expect(result.EMTAK).toEqual(json.aastased.emtak);
-            expect(result.sektorNo).toEqual(json.aastased.sektor_nr);
-            expect(result.size).toEqual(json.aastased.ettevotte_suurusklass);
-            expect(result.county).toEqual(json.aastased.maakond);
-            expect(result.kov).toEqual(json.aastased.kov);
+            expect(result.prognAasta).toEqual(`${json.company.aasta}`);
+            expect(result.EMTAK).toEqual(json.company.emtak);
+            expect(result.sektorNo).toEqual(json.company.sektor_nr);
+            expect(result.size).toEqual(json.company.ettevotte_suurusklass);
+            expect(result.county).toEqual(json.company.maakond);
+            expect(result.kov).toEqual(json.company.kov);
         });
 
         it('should correctly process financial ratios', async () => {
             const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.LVKK).toEqual(json.aastased.lvkk);
-            expect(result.MVK).toEqual(json.aastased.mvk);
-            expect(result.RK).toEqual(json.aastased.rk);
-            expect(result.VaKK).toEqual(json.aastased.vakk);
-            expect(result.LVKaK).toEqual(json.aastased.lvkak);
-            expect(result.VKK).toEqual(json.aastased.vkk);
-            expect(result.VK).toEqual(json.aastased.vk);
-            expect(result.KOS).toEqual(json.aastased.kos);
-            expect(result.IKK).toEqual(json.aastased.ikk);
+            expect(result.LVKK).toEqual(json.company.lvkk);
+            expect(result.MVK).toEqual(json.company.mvk);
+            expect(result.RK).toEqual(json.company.rk);
+            expect(result.VaKK).toEqual(json.company.vakk);
+            expect(result.LVKaK).toEqual(json.company.lvkak);
+            expect(result.VKK).toEqual(json.company.vkk);
+            expect(result.VK).toEqual(json.company.vk);
+            expect(result.KOS).toEqual(json.company.kos);
+            expect(result.IKK).toEqual(json.company.ikk);
         });
 
         it('should correctly process performance metrics', async () => {
             const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.AKM).toEqual(json.aastased.akm);
-            expect(result.PKM).toEqual(json.aastased.pkm);
-            expect(result.ROA).toEqual(json.aastased.roa);
-            expect(result.ROE).toEqual(json.aastased.roe);
+            expect(result.AKM).toEqual(json.company.akm);
+            expect(result.PKM).toEqual(json.company.pkm);
+            expect(result.ROA).toEqual(json.company.roa);
+            expect(result.ROE).toEqual(json.company.roe);
         });
     });
 
@@ -95,8 +95,8 @@ describe('Data Handling Tests', () => {
         it('should handle missing monthly data correctly', async () => {
             const mockJson = {
                 ...json,
-                kuised: {
-                    ...nullJson.kuised
+                monthly: {
+                    ...nullJson.monthly
                 }
             };
             const result = await handleJsonRequest(mockJson, mockCorrelationId);
@@ -118,17 +118,17 @@ describe('Data Handling Tests', () => {
     describe('Monthly Data Processing', () => {
         it('should correctly process valid monthly metrics', async () => {
             const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.hoiv).toEqual(json.kuised.tor_m_min1);
-            expect(result.EmppSect).toEqual(json.kuised.protsentiil_sektor);
-            expect(result.TJT).toEqual(json.kuised.kmd_tsd_min2);
-            expect(result.Emp_n_Sect).toEqual(json.kuised.sektor_n);
+            expect(result.hoiv).toEqual(json.monthly.tor_m_min1);
+            expect(result.EmppSect).toEqual(json.monthly.protsentiil_sektor);
+            expect(result.TJT).toEqual(json.monthly.kmd_tsd_min2);
+            expect(result.Emp_n_Sect).toEqual(json.monthly.sektor_n);
         });
 
         it('should handle null monthly metrics correctly', async () => {
             const mockJson = {
                 ...json,
-                kuised: {
-                    ...nullJson.kuised
+                monthly: {
+                    ...nullJson.monthly
                 }
             };
             const result = await handleJsonRequest(mockJson, mockCorrelationId);
@@ -142,8 +142,8 @@ describe('Data Handling Tests', () => {
         it('should handle partially missing monthly data', async () => {
             const partiallyMissingData = {
                 ...json,
-                kuised: {
-                    ...json.kuised,
+                monthly: {
+                    ...json.monthly,
                     kmd_m_min12: null,
                     kmd_m_min11: null,
                     kmd_m_min10: null
@@ -157,8 +157,8 @@ describe('Data Handling Tests', () => {
         it('should handle too many missing monthly fields', async () => {
             const tooManyMissingFields = {
                 ...json,
-                kuised: {
-                    ...json.kuised,
+                monthly: {
+                    ...json.monthly,
                     kmd_m_min12: null,
                     kmd_m_min11: null,
                     kmd_m_min10: null,
@@ -174,26 +174,26 @@ describe('Data Handling Tests', () => {
     describe('Statistical Metrics', () => {
         it('should correctly process sector statistics', async () => {
             const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.EffpSect).toEqual(json.aastased.sektor_efektiivsus_protsentiil);
-            expect(result.Eff_n_Sect).toEqual(json.aastased.sektor_efektiivsus_n);
-            expect(result.LiqpSect).toEqual(json.aastased.sektor_likviidsus_protsentiil);
-            expect(result.Liq_n_Sect).toEqual(json.aastased.sektor_likviidsus_n);
+            expect(result.EffpSect).toEqual(json.company.sektor_efektiivsus_protsentiil);
+            expect(result.Eff_n_Sect).toEqual(json.company.sektor_efektiivsus_n);
+            expect(result.LiqpSect).toEqual(json.company.sektor_likviidsus_protsentiil);
+            expect(result.Liq_n_Sect).toEqual(json.company.sektor_likviidsus_n);
         });
 
         it('should correctly process size-based statistics', async () => {
             const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.EffpSize).toEqual(json.aastased.suurusklass_efektiivsus_protse);
-            expect(result.Eff_n_Size).toEqual(json.aastased.suurusklass_efektiivsus_n);
-            expect(result.LiqpSize).toEqual(json.aastased.suurusklass_likviidsus_protsen);
-            expect(result.Liq_n_Size).toEqual(json.aastased.suurusklass_likviidsus_n);
+            expect(result.EffpSize).toEqual(json.company.suurusklass_efektiivsus_protse);
+            expect(result.Eff_n_Size).toEqual(json.company.suurusklass_efektiivsus_n);
+            expect(result.LiqpSize).toEqual(json.company.suurusklass_likviidsus_protsen);
+            expect(result.Liq_n_Size).toEqual(json.company.suurusklass_likviidsus_n);
         });
 
         it('should correctly process county statistics', async () => {
             const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.EffpCount).toEqual(json.aastased.maakond_efektiivsus_protsentii);
-            expect(result.Eff_n_Count).toEqual(json.aastased.maakond_efektiivsus_n);
-            expect(result.LiqpCount).toEqual(json.aastased.maakond_likviidsus_protsentiil);
-            expect(result.Liq_n_Count).toEqual(json.aastased.maakond_likviidsus_n);
+            expect(result.EffpCount).toEqual(json.company.maakond_efektiivsus_protsentii);
+            expect(result.Eff_n_Count).toEqual(json.company.maakond_efektiivsus_n);
+            expect(result.LiqpCount).toEqual(json.company.maakond_likviidsus_protsentiil);
+            expect(result.Liq_n_Count).toEqual(json.company.maakond_likviidsus_n);
         });
     });
 });

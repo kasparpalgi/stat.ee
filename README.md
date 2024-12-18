@@ -74,7 +74,7 @@ mintlify dev
 
 This opens the docs in your web browser, usually at http://localhost:4111/.
 
-## Building the Docker image - Using the script
+## Building the Docer image - Using the script
 
 [/docker_build.sh](docker_build.sh)
 
@@ -107,10 +107,17 @@ This route allows you to get company predictions by providing JSON data directly
 The request body should be a JSON object with the following structure:
 
 
+
 ### Company Data
 From `company_year_repository.ts`:
-##### Query to Use
-```sql
+
+#### Query to Use
+
+The CompanyRepository class provides two key methods for retrieving company data:
+##### For `company` data:
+   - Filters for companies with maa_protsent >= 90%
+   - Returns most recent valid year's data
+   ```sql
    WITH Filtered AS (
        SELECT * 
        FROM "ELUJOULISUSEINDEKS"."AASTASED"
@@ -123,12 +130,25 @@ From `company_year_repository.ts`:
    WHERE "maa_protsent" >= 0.9
    ORDER BY "aasta" DESC
    FETCH FIRST 1 ROW ONLY
-```
-#### JSON Structure
+   ```
+
+##### For `lastYearCompany` data:
+   - Gets most recent year without filtering
+   - Used for prediction target year
+   ```sql
+   SELECT *
+   FROM "ELUJOULISUSEINDEKS"."AASTASED"
+   WHERE "jykood" = :jykood
+   ORDER BY "aasta" DESC
+   FETCH FIRST 1 ROWS ONLY
+   ```
+
+Both queries return data in this structure:
+
 ```json
 {
   // ...
-  "aastased": {
+  "company": {
       "jykood": "string",
       "klaster": "string",
       "aasta": "number",
@@ -138,6 +158,16 @@ From `company_year_repository.ts`:
       "maakond": "number",
       "kov": "number"
   },
+  "lastYearCompany": {
+      "jykood": "string",
+      "klaster": "string",
+      "aasta": "number",
+      "emtak": "string",
+      "sektor_nr": "number",
+      "ettevotte_suurusklass": "number",
+      "maakond": "number",
+      "kov": "number"
+  }
   // ...
 }
 ```
@@ -165,16 +195,16 @@ FETCH FIRST 1 ROWS ONLY
 ```json
 { 
   // ...
-  "norm_kuu_kesk": {
+  "monthlyMea": {
     // Fields from NORM_KUU_KESK query
   },
-  "norm_kuu_sds": {
+  "monthlySds": {
     // Fields from NORM_KUU_SDS query
   },
-  "norm_aasta_kesk": {
+  "yearlyMea": {
     // Fields from NORM_AASTA_KESK query
   },
-  "norm_aasta_sds": {
+  "yearlySds": {
     // Fields from NORM_AASTA_SDS query
   }
   // ...
@@ -196,8 +226,7 @@ FETCH FIRST 1 ROWS ONLY
 ```json
 {
   // ...
-  "kuised": {
-    "kood": "string",
+  "monthly": {
     "emtak08": "number",
     "emtak_estat": "string", 
     "maa": "number",
