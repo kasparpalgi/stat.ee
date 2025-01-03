@@ -17,7 +17,7 @@ export class Company extends SerializableEntity {
   @JsonProperty()
   tarv_h: number;
   @JsonProperty()
-  oig_vorm: string;
+  oig_grupp: string;
   @JsonProperty()
   ettevotte_suurusklass: number;
   @JsonProperty()
@@ -83,33 +83,23 @@ export class Company extends SerializableEntity {
   @JsonProperty()
   aruandeaasta_kasum: number;
   @JsonProperty()
-  lvkk: number;
+  LVKK: number;
   @JsonProperty()
-  mvk: number;
+  MVK: number;
   @JsonProperty()
-  rk: number;
+  RK: number;
   @JsonProperty()
-  lllk: number;
+  VaKK: number;
   @JsonProperty()
-  llvk: number;
+  LVKaK: number;
   @JsonProperty()
-  llok: number;
+  VKK: number;
   @JsonProperty()
-  vakk: number;
+  VK: number;
   @JsonProperty()
-  lvkak: number;
+  KOS: number;
   @JsonProperty()
-  vkk: number;
-  @JsonProperty()
-  vk: number;
-  @JsonProperty()
-  kos: number;
-  @JsonProperty()
-  ikk: number;
-  @JsonProperty()
-  lkkkk: number;
-  @JsonProperty()
-  pkkkk: number;
+  IKK: number;
   @JsonProperty()
   akm: number;
   @JsonProperty()
@@ -175,79 +165,21 @@ export class Company extends SerializableEntity {
   @JsonProperty()
   ds_aruandeaasta_kasum: number;
   @JsonProperty()
-  ettevotete_arv_sektoris: number;
-  @JsonProperty()
-  skoor_1_likviidsus: number;
-  @JsonProperty()
-  skoor_2_efektiivsus: number;
-  @JsonProperty()
-  skoor_3_struktuur: number;
-  @JsonProperty()
-  skoor_4_tasuvus: number;
-  @JsonProperty()
-  y_skoor_1_likviidsus: number;
-  @JsonProperty()
-  y_skoor_2_efektiivsus: number;
-  @JsonProperty()
-  y_skoor_3_struktuur: number;
-  @JsonProperty()
-  y_skoor_4_tasuvus: number;
-  @JsonProperty()
-  skp_jooksevhindades: number;
-  @JsonProperty()
-  skp_nominaalkasv: number;
-  @JsonProperty()
-  skp_pysivhindades: number;
-  @JsonProperty()
-  skp_reaalkasv: number;
-  @JsonProperty()
-  tarbijahinnaindeks: number;
-  @JsonProperty()
-  keskmine_kuupalk: number;
-  @JsonProperty()
-  palgakasv: number;
-  @JsonProperty()
-  tooviljakuse_kasv: number;
-  @JsonProperty()
-  sektor_likviidsus_protsentiil: number;
+  maakond_efektiivsus_protsentii: number;
   @JsonProperty()
   sektor_efektiivsus_protsentiil: number;
+  @JsonProperty()
+  sektor_likviidsus_protsentiil: number;
   @JsonProperty()
   sektor_struktuur_protsentiil: number;
   @JsonProperty()
   sektor_tasuvus_protsentiil: number;
   @JsonProperty()
-  klaster_likviidsus_protsentiil: number;
-  @JsonProperty()
-  klaster_efektiivsus_protsentii: number;
-  @JsonProperty()
-  klaster_struktuur_protsentiil: number;
-  @JsonProperty()
-  klaster_tasuvus_protsentiil: number;
-  @JsonProperty()
-  kov_likviidsus_protsentiil: number;
-  @JsonProperty()
-  kov_efektiivsus_protsentiil: number;
-  @JsonProperty()
-  kov_struktuur_protsentiil: number;
-  @JsonProperty()
-  kov_tasuvus_protsentiil: number;
-  @JsonProperty()
   maakond_likviidsus_protsentiil: number;
-  @JsonProperty()
-  maakond_efektiivsus_protsentii: number;
   @JsonProperty()
   maakond_struktuur_protsentiil: number;
   @JsonProperty()
   maakond_tasuvus_protsentiil: number;
-  @JsonProperty()
-  maakond_x_klaster_likviidsus_p: number;
-  @JsonProperty()
-  maakond_x_klaster_efektiivsus_: number;
-  @JsonProperty()
-  maakond_x_klaster_struktuur_pr: number;
-  @JsonProperty()
-  maakond_x_klaster_tasuvus_prot: number;
   @JsonProperty()
   suurusklass_likviidsus_protsen: number;
   @JsonProperty()
@@ -265,22 +197,6 @@ export class Company extends SerializableEntity {
   @JsonProperty()
   sektor_tasuvus_n: number;
   @JsonProperty()
-  klaster_likviidsus_n: number;
-  @JsonProperty()
-  klaster_efektiivsus_n: number;
-  @JsonProperty()
-  klaster_struktuur_n: number;
-  @JsonProperty()
-  klaster_tasuvus_n: number;
-  @JsonProperty()
-  kov_likviidsus_n: number;
-  @JsonProperty()
-  kov_efektiivsus_n: number;
-  @JsonProperty()
-  kov_struktuur_n: number;
-  @JsonProperty()
-  kov_tasuvus_n: number;
-  @JsonProperty()
   maakond_likviidsus_n: number;
   @JsonProperty()
   maakond_efektiivsus_n: number;
@@ -288,14 +204,6 @@ export class Company extends SerializableEntity {
   maakond_struktuur_n: number;
   @JsonProperty()
   maakond_tasuvus_n: number;
-  @JsonProperty()
-  maakond_x_klaster_likviidsus_n: number;
-  @JsonProperty()
-  maakond_x_klaster_efektiivsusn: number;
-  @JsonProperty()
-  maakond_x_klaster_struktuur_n: number;
-  @JsonProperty()
-  maakond_x_klaster_tasuvus_n: number;
   @JsonProperty()
   suurusklass_likviidsus_n: number;
   @JsonProperty()
@@ -305,7 +213,21 @@ export class Company extends SerializableEntity {
   @JsonProperty()
   suurusklass_tasuvus_n: number;
   @JsonProperty()
-  maa_protsent: number;
+  skp_jooksevhindades: number;
+  @JsonProperty()
+  skp_nominaalkasv: number;
+  @JsonProperty()
+  skp_pysivhindades: number;
+  @JsonProperty()
+  skp_reaalkasv: number;
+  @JsonProperty()
+  tarbijahinnaindeks: number;
+  @JsonProperty()
+  keskmine_kuupalk: number;
+  @JsonProperty()
+  palgakasv: number;
+  @JsonProperty()
+  tooviljakuse_kasv: number;
 
   public toCluster(): YearlyCluster {
     return YearlyCluster.deserialize(this.serialize());

@@ -237,7 +237,7 @@ export function handleErrors(
 
   logToStdout(message);
 
-  const emptyResponse = ApiResponse.buildNull();
+  const emptyResponse = ApiResponse.none();
   res.setHeader("X-Error-Info", JSON.stringify(message));
   res.status(statusCode).json(emptyResponse);
 

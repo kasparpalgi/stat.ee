@@ -3,24 +3,28 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('Data Handling Tests', () => {
-    let json: any;
+    let dataJson: any;
     let nullJson: any;
+    let responseJSON: any;
     const mockCorrelationId = '123e4567-e89b-12d3-a456-426614174000';
 
     beforeAll(() => {
-        json = JSON.parse(
+        dataJson = JSON.parse(
             fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8')
         );
         nullJson = JSON.parse(
             fs.readFileSync(path.join(__dirname, 'null.json'), 'utf8')
+        );
+        responseJSON = JSON.parse(
+            fs.readFileSync(path.join(__dirname, 'response.json'), 'utf8')
         );
     });
 
     describe('Basic Data Validation', () => {
         it('should reject invalid company ID', async () => {
             const invalidData = {
-                ...json,
-                company: { ...json.company, kood: '123' }
+                ...dataJson,
+                company: { ...dataJson.company, kood: '123' }
             };
             await expect(handleJsonRequest(invalidData, mockCorrelationId))
                 .rejects
@@ -29,8 +33,8 @@ describe('Data Handling Tests', () => {
 
         it('should reject invalid cluster', async () => {
             const invalidData = {
-                ...json,
-                company: { ...json.company, klaster: 'muu' }
+                ...dataJson,
+                company: { ...dataJson.company, klaster: 'muu' }
             };
             await expect(handleJsonRequest(invalidData, mockCorrelationId))
                 .rejects
@@ -46,45 +50,45 @@ describe('Data Handling Tests', () => {
 
     describe('Annual Data Processing', () => {
         it('should correctly process registrikood', async () => {
-            const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.registrikood).toBe(json.company.kood);
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            expect(result.registrikood).toBe(dataJson.company.kood);
         });
 
         it('should correctly process basic annual fields', async () => {
-            const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.prognAasta).toEqual(`${json.company.aasta}`);
-            expect(result.EMTAK).toEqual(json.company.emtak);
-            expect(result.sektorNo).toEqual(json.company.sektor_nr);
-            expect(result.size).toEqual(json.company.ettevotte_suurusklass);
-            expect(result.county).toEqual(json.company.maakond);
-            expect(result.kov).toEqual(json.company.kov);
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            expect(result.prognAasta).toEqual(`${dataJson.company.aasta}`);
+            expect(result.EMTAK).toEqual(dataJson.company.emtak);
+            expect(result.sektorNo).toEqual(dataJson.company.sektor_nr);
+            expect(result.size).toEqual(dataJson.company.ettevotte_suurusklass);
+            expect(result.county).toEqual(dataJson.company.maakond);
+            expect(result.kov).toEqual(dataJson.company.kov);
         });
 
         it('should correctly process financial ratios', async () => {
-            const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.LVKK).toEqual(json.company.lvkk);
-            expect(result.MVK).toEqual(json.company.mvk);
-            expect(result.RK).toEqual(json.company.rk);
-            expect(result.VaKK).toEqual(json.company.vakk);
-            expect(result.LVKaK).toEqual(json.company.lvkak);
-            expect(result.VKK).toEqual(json.company.vkk);
-            expect(result.VK).toEqual(json.company.vk);
-            expect(result.KOS).toEqual(json.company.kos);
-            expect(result.IKK).toEqual(json.company.ikk);
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            expect(result.LVKK).toEqual(dataJson.company.LVKK);
+            expect(result.MVK).toEqual(dataJson.company.MVK);
+            expect(result.RK).toEqual(dataJson.company.RK);
+            expect(result.VaKK).toEqual(dataJson.company.VaKK);
+            expect(result.LVKaK).toEqual(dataJson.company.LVKaK);
+            expect(result.VKK).toEqual(dataJson.company.VKK);
+            expect(result.VK).toEqual(dataJson.company.VK);
+            expect(result.KOS).toEqual(dataJson.company.KOS);
+            expect(result.IKK).toEqual(dataJson.company.IKK);
         });
 
         it('should correctly process performance metrics', async () => {
-            const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.AKM).toEqual(json.company.akm);
-            expect(result.PKM).toEqual(json.company.pkm);
-            expect(result.ROA).toEqual(json.company.roa);
-            expect(result.ROE).toEqual(json.company.roe);
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            expect(result.AKM).toEqual(dataJson.company.akm);
+            expect(result.PKM).toEqual(dataJson.company.pkm);
+            expect(result.ROA).toEqual(dataJson.company.roa);
+            expect(result.ROE).toEqual(dataJson.company.roe);
         });
     });
 
     describe('Model Predictions', () => {
         it('should generate all model predictions for valid data', async () => {
-            const result = await handleJsonRequest(json, mockCorrelationId);
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
             for (let i = 1; i <= 5; i++) {
                 for (let j = 1; j <= 3; j++) {
                     expect(result[`model${i}y${j}`]).toEqual(expect.any(Number));
@@ -94,7 +98,7 @@ describe('Data Handling Tests', () => {
 
         it('should handle missing monthly data correctly', async () => {
             const mockJson = {
-                ...json,
+                ...dataJson,
                 monthly: {
                     ...nullJson.monthly
                 }
@@ -117,16 +121,16 @@ describe('Data Handling Tests', () => {
 
     describe('Monthly Data Processing', () => {
         it('should correctly process valid monthly metrics', async () => {
-            const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.hoiv).toEqual(json.monthly.tor_m_min1);
-            expect(result.EmppSect).toEqual(json.monthly.protsentiil_sektor);
-            expect(result.TJT).toEqual(json.monthly.kmd_tsd_min2);
-            expect(result.Emp_n_Sect).toEqual(json.monthly.sektor_n);
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            expect(result.hoiv).toEqual(dataJson.monthly.tor_m_min1);
+            expect(result.EmppSect).toEqual(dataJson.monthly.protsentiil_sektor);
+            expect(result.TJT).toEqual(dataJson.monthly.kmd_tsd_min2);
+            expect(result.Emp_n_Sect).toEqual(dataJson.monthly.sektor_n);
         });
 
         it('should handle null monthly metrics correctly', async () => {
             const mockJson = {
-                ...json,
+                ...dataJson,
                 monthly: {
                     ...nullJson.monthly
                 }
@@ -141,9 +145,9 @@ describe('Data Handling Tests', () => {
 
         it('should handle partially missing monthly data', async () => {
             const partiallyMissingData = {
-                ...json,
+                ...dataJson,
                 monthly: {
-                    ...json.monthly,
+                    ...dataJson.monthly,
                     kmd_m_min12: null,
                     kmd_m_min11: null,
                     kmd_m_min10: null
@@ -156,9 +160,9 @@ describe('Data Handling Tests', () => {
 
         it('should handle too many missing monthly fields', async () => {
             const tooManyMissingFields = {
-                ...json,
+                ...dataJson,
                 monthly: {
-                    ...json.monthly,
+                    ...dataJson.monthly,
                     kmd_m_min12: null,
                     kmd_m_min11: null,
                     kmd_m_min10: null,
@@ -173,27 +177,90 @@ describe('Data Handling Tests', () => {
 
     describe('Statistical Metrics', () => {
         it('should correctly process sector statistics', async () => {
-            const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.EffpSect).toEqual(json.company.sektor_efektiivsus_protsentiil);
-            expect(result.Eff_n_Sect).toEqual(json.company.sektor_efektiivsus_n);
-            expect(result.LiqpSect).toEqual(json.company.sektor_likviidsus_protsentiil);
-            expect(result.Liq_n_Sect).toEqual(json.company.sektor_likviidsus_n);
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            expect(result.EffpSect).toEqual(dataJson.company.sektor_efektiivsus_protsentiil);
+            expect(result.Eff_n_Sect).toEqual(dataJson.company.sektor_efektiivsus_n);
+            expect(result.LiqpSect).toEqual(dataJson.company.sektor_likviidsus_protsentiil);
+            expect(result.Liq_n_Sect).toEqual(dataJson.company.sektor_likviidsus_n);
         });
 
         it('should correctly process size-based statistics', async () => {
-            const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.EffpSize).toEqual(json.company.suurusklass_efektiivsus_protse);
-            expect(result.Eff_n_Size).toEqual(json.company.suurusklass_efektiivsus_n);
-            expect(result.LiqpSize).toEqual(json.company.suurusklass_likviidsus_protsen);
-            expect(result.Liq_n_Size).toEqual(json.company.suurusklass_likviidsus_n);
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            expect(result.EffpSize).toEqual(dataJson.company.suurusklass_efektiivsus_protse);
+            expect(result.Eff_n_Size).toEqual(dataJson.company.suurusklass_efektiivsus_n);
+            expect(result.LiqpSize).toEqual(dataJson.company.suurusklass_likviidsus_protsen);
+            expect(result.Liq_n_Size).toEqual(dataJson.company.suurusklass_likviidsus_n);
         });
 
         it('should correctly process county statistics', async () => {
-            const result = await handleJsonRequest(json, mockCorrelationId);
-            expect(result.EffpCount).toEqual(json.company.maakond_efektiivsus_protsentii);
-            expect(result.Eff_n_Count).toEqual(json.company.maakond_efektiivsus_n);
-            expect(result.LiqpCount).toEqual(json.company.maakond_likviidsus_protsentiil);
-            expect(result.Liq_n_Count).toEqual(json.company.maakond_likviidsus_n);
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            expect(result.EffpCount).toEqual(dataJson.company.maakond_efektiivsus_protsentii);
+            expect(result.Eff_n_Count).toEqual(dataJson.company.maakond_efektiivsus_n);
+            expect(result.LiqpCount).toEqual(dataJson.company.maakond_likviidsus_protsentiil);
+            expect(result.Liq_n_Count).toEqual(dataJson.company.maakond_likviidsus_n);
+        });
+    });
+
+    describe('Response Format Validation', () => {
+        it('should match the expected response schema', async () => {
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            const expectedKeys = Object.keys(responseJSON);
+            const resultKeys = Object.keys(result);
+
+            // Check that all expected keys are present
+            expect(resultKeys.sort()).toEqual(expectedKeys.sort());
+
+            // Check that all values have the correct type
+            for (const key of expectedKeys) {
+                expect(typeof result[key]).toBe(typeof responseJSON[key]);
+                if (typeof responseJSON[key] === 'number') {
+                    expect(result[key]).toEqual(expect.any(Number));
+                }
+            }
+        });
+
+        it('should have all required model prediction fields', async () => {
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            
+            // Check all model predictions (model1y1 through model5y3)
+            for (let model = 1; model <= 5; model++) {
+                for (let year = 1; year <= 3; year++) {
+                    const field = `model${model}y${year}`;
+                    expect(result).toHaveProperty(field);
+                    expect(typeof result[field]).toBe('number');
+                }
+            }
+        });
+
+        it('should have all required statistical fields', async () => {
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            
+            const requiredFields = [
+                'AKM', 'PKM', 'ROA', 'ROE',
+                'LVKK', 'MVK', 'RK', 'VaKK', 'LVKaK', 'VKK', 'VK', 'KOS', 'IKK',
+                'EffpSect', 'Eff_n_Sect', 'LiqpSect', 'Liq_n_Sect',
+                'EffpSize', 'Eff_n_Size', 'LiqpSize', 'Liq_n_Size',
+                'EffpCount', 'Eff_n_Count', 'LiqpCount', 'Liq_n_Count'
+            ];
+
+            for (const field of requiredFields) {
+                expect(result).toHaveProperty(field);
+                expect(typeof result[field]).toBe('number');
+            }
+        });
+
+        it('should have all required metadata fields', async () => {
+            const result = await handleJsonRequest(dataJson, mockCorrelationId);
+            
+            const metadataFields = [
+                'registrikood', 'prognAasta', 'EMTAK', 
+                'sektorNo', 'size', 'county', 'kov'
+            ];
+
+            for (const field of metadataFields) {
+                expect(result).toHaveProperty(field);
+                expect(result[field]).not.toBeNull();
+            }
         });
     });
 });

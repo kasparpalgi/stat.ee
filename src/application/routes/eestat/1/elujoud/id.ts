@@ -14,7 +14,7 @@ import { handleErrors } from '../../../../utils/errors';
 
 /**
  * Handles the prognosing for a given company, either by ID or JSON data.
- * @param req - Express request object containing either company ID in params or JSON data in body
+ * @param req - Express request object containing JSON data in body
  * @param res - Express response object
  * @returns A promise that resolves to a record containing the prediction and company details
  */
@@ -37,6 +37,67 @@ export default async function handleRequest(
 
 
 
+
+/**
+ * Processes company data and returns predictions
+ * 
+ * @param json - Company data and statistics
+ * @param correlationID - Request tracking ID
+ */
+export async function handleJsonRequest(json: any, correlationID: string): Promise<ApiResponse> {
+  // Check for empty request
+  if (allFieldsAreNull(json)) {
+    throw new Error("All fields are null");
+  }
+
+  // Company data must have:
+  // - An 8-digit registration code (kood)
+  // - Occupancy rate (maa_protsent) >= 90%
+  // - Valid cluster value (not "muu")
+  const company = Company.deserialize(json.company);
+
+  // Validate registration code format
+  if (company.kood.length !== 8 || isNaN(parseInt(company.kood))) {
+    throw new Error("ID must be an 8-digit number");
+  }
+
+  // Check if occupancy rate is at least 90%
+  // if (company.maa_protsent < 0.9) {
+  //   throw new Error("Occupancy rate must be at least 90%");
+  // }
+
+  // Check if cluster is valid
+  if (company.klaster === "muu") {
+    throw new Error("Cluster is not valid");
+  }
+
+  // Get company data for predictions
+  const targetYear = Company.deserialize(json.lastYearCompany);
+  const yearlyStats = YearlyCluster.deserialize(json.lastYearCompany);
+  const monthlyStats = MonthlyCluster.deserialize(json.monthly);
+
+  // Initialize statistics normalizer
+  const statsNormalizer = new JsonNormalizationProvider(
+    json.monthlyMea,  // Monthly means
+    json.monthlySds,  // Monthly standard deviations
+    json.yearlyMea,   // Yearly means
+    json.yearlySds    // Yearly standard deviations
+  );
+
+  // Generate predictions
+  const modelService = new ModelService(statsNormalizer);
+  const predictionService = new PredictionService(modelService);
+  const predictions = await predictionService.predict(
+    correlationID,
+    targetYear,
+    yearlyStats,
+    monthlyStats
+  );
+
+
+  return ApiResponse.success(predictions, monthlyStats, company);
+}
+
 function allFieldsAreNull(object: any): boolean {
   return Object.values(object).every(value => {
     if (typeof value === 'object' && value !== null) {
@@ -44,50 +105,4 @@ function allFieldsAreNull(object: any): boolean {
     }
     return value === null;
   });
-}
-
-
-export async function handleJsonRequest(json: any, correlationID: string): Promise<ApiResponse> {
-  // Check if data any data is present
-  if (allFieldsAreNull(json)) {
-    throw new Error("All fields are null");
-  }
-
-  // Check if company ID is valid
-  const company = Company.deserialize(json.company);
-  if (company.kood.length !== 8 || isNaN(parseInt(company.kood))) {
-    throw new Error("ID must be an 8-digit number");
-  }
-
-  // Check if cluster is valid
-  if (company.klaster === "muu") {
-    throw new Error("Cluster is not valid");
-  }
-
-
-  // Data used for prediction
-  const forecastCompany = Company.deserialize(json.lastYearCompany);
-  const yearly = YearlyCluster.deserialize(json.lastYearCompany);
-  const monthly = MonthlyCluster.deserialize(json.monthly);
-
-  // Normalization data
-  const normalization = new JsonNormalizationProvider(
-    json.monthlyMea,
-    json.monthlySds,
-    json.yearlyMea,
-    json.yearlySds
-  );
-
-  
-  const modelService = new ModelService(normalization);
-  const predictionService = new PredictionService(modelService);
-
-  const prediction = await predictionService.predict(
-    correlationID,
-    forecastCompany,
-    yearly,
-    monthly
-  );
-
-  return ApiResponse.buildSuccess(prediction, monthly, company);
 }

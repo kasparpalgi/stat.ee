@@ -70,9 +70,9 @@ export class ApiResponse {
   EmppSize: number | null;
   Emp_n_Size: number | null;
   EmppCount: number | null;
-  Emp_n_Count: number | null;
+  Emp_n_Count: number | null; 
 
-  static buildSuccess(
+  static success(
     prediction: PredictionResponse,
     monthly: MonthlyCluster | null,
     company: Company
@@ -80,14 +80,6 @@ export class ApiResponse {
 
 
     return {
-      Emp_n_Count: monthly?.vald_n ?? null,
-      Emp_n_Sect: monthly?.sektor_n ?? null,
-      Emp_n_Size: monthly?.suurusgrupp_n ?? null,
-      EmppCount: monthly?.protsentiil_vald ?? null,
-      EmppSect: monthly?.protsentiil_sektor ?? null,
-      EmppSize: monthly?.protsentiil_suurusgrupp ?? null,
-      hoiv: monthly?.tor_m_min1 ?? null,
-      TJT: monthly?.kmd_tsd_min2 ?? null,
       AKM: company.akm,
       county: company.maakond,
       Eff_n_Count: company.maakond_efektiivsus_n,
@@ -96,9 +88,16 @@ export class ApiResponse {
       EffpCount: company.maakond_efektiivsus_protsentii,
       EffpSect: company.sektor_efektiivsus_protsentiil,
       EffpSize: company.suurusklass_efektiivsus_protse,
+      Emp_n_Count: monthly?.vald_n ?? null,
+      Emp_n_Sect: monthly?.sektor_n ?? null,
+      Emp_n_Size: monthly?.suurusgrupp_n ?? null,
+      EmppCount: monthly?.protsentiil_vald ?? null,
+      EmppSect: monthly?.protsentiil_sektor ?? null,
+      EmppSize: monthly?.protsentiil_suurusgrupp ?? null,
       EMTAK: `${company.emtak}`,
-      IKK: company.ikk,
-      KOS: company.kos,
+      hoiv: monthly?.tor_m_min1 ?? null,
+      IKK: company.IKK,
+      KOS: company.KOS,
       kov: company.kov,
       Lev_n_Count: company.maakond_struktuur_n,
       Lev_n_Sect: company.sektor_struktuur_n,
@@ -112,8 +111,8 @@ export class ApiResponse {
       LiqpCount: company.maakond_likviidsus_protsentiil,
       LiqpSect: company.sektor_likviidsus_protsentiil,
       LiqpSize: company.suurusklass_likviidsus_protsen,
-      LVKaK: company.lvkak,
-      LVKK: company.lvkk,
+      LVKaK: company.LVKaK,
+      LVKK: company.LVKK,
       model1y1: prediction.model1y1,
       model1y2: prediction.model1y2,
       model1y3: prediction.model1y3,
@@ -129,7 +128,7 @@ export class ApiResponse {
       model5y1: prediction.model5y1,
       model5y2: prediction.model5y2,
       model5y3: prediction.model5y3,
-      MVK: company.mvk,
+      MVK: company.MVK,
       PKM: company.pkm,
       prognAasta: `${company.aasta}`,
       registrikood: company.kood,
@@ -139,18 +138,19 @@ export class ApiResponse {
       RetpCount: company.maakond_tasuvus_protsentiil,
       RetpSect: company.sektor_tasuvus_protsentiil,
       RetpSize: company.suurusklass_tasuvus_protsentii,
-      RK: company.rk,
+      RK: company.RK,
       ROA: company.roa,
       ROE: company.roe,
       sektorNo: company.sektor_nr,
       size: company.ettevotte_suurusklass,
-      VaKK: company.vakk,
-      VK: company.vk,
-      VKK: company.vkk,
+      TJT: monthly?.kmd_tsd_min2 ?? null,
+      VaKK: company.VaKK,
+      VK: company.VK,
+      VKK: company.VKK,
     };
   }
 
-  static buildNull(): ApiResponse {
+  static none(): ApiResponse {
     return {
       registrikood: null,
       model1y1: null,
